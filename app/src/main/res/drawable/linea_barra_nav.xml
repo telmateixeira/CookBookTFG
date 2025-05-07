@@ -1,0 +1,19 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Línea superior con gradiente -->
+    <item android:top="0dp" android:height="2dp">
+        <shape>
+            <gradient
+                android:angle="0"
+                android:startColor="#00C6FF"
+                android:endColor="#F0FF00"
+                android:type="linear"/>
+        </shape>
+    </item>
+
+    <!-- Fondo blanco o el que uses -->
+    <item android:top="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+</layer-list>

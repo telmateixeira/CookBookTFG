@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".MenuPrincipalActivity">
+
+    <!-- Contenedor principal con todos tus elementos actuales -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Buscador -->
+        <LinearLayout
+            android:id="@+id/search_container"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_margin="16dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:background="@drawable/fondo_buscador"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/icon_search"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/icono_buscar"
+                app:tint="@color/black" />
+
+            <EditText
+                android:id="@+id/etBuscar"
+                android:layout_width="304dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Buscar"
+                android:inputType="text"
+                android:minHeight="48dp"
+                android:paddingStart="8dp"
+                android:textColor="@color/black"
+                android:textColorHint="@color/grey_icono" />
+
+            <ImageButton
+                android:id="@+id/btnFiltro"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="Filtrar por ingredientes"
+                android:src="@drawable/icono_filtro"
+                android:background="@android:color/transparent"
+                tools:ignore="TouchTargetSizeCheck" />
+        </LinearLayout>
+
+        <!-- Lista de recetas -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewRecetas"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:padding="8dp" />
+
+        <!-- Navegación inferior -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            app:itemIconTint="@color/color_barra_selector"
+            app:itemTextColor="@color/color_barra_selector"
+            app:labelVisibilityMode="unlabeled"
+            app:menu="@menu/menu_navegacion" />
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_crear_receta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="72dp"
+    android:layout_marginEnd="24dp"
+    android:contentDescription="Crear nueva receta"
+    app:srcCompat="@drawable/icono_mas"
+    app:backgroundTint="@color/grey_icono"
+    app:tint="@android:color/white" />
+</RelativeLayout>

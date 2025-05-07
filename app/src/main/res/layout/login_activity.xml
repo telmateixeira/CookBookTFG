@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <!-- Botón de Registrarse (Arriba derecha) -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tvRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="@font/nunito"
+                android:text="REGISTRARSE"
+                android:textColor="@color/orange"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnVolver"
+                android:layout_width="33dp"
+                android:layout_height="29dp"
+                android:scaleType="fitXY"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="@color/white"
+                app:srcCompat="@drawable/flechasalida"
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+        </RelativeLayout>
+
+
+    <TextView
+        android:id="@+id/txtIniciarSesion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="70dp"
+        android:layout_marginBottom="60dp"
+        android:fontFamily="@font/nunito_extrabold"
+        android:text="Iniciar Sesión"
+        android:textAlignment="center"
+        android:textColor="@color/orange"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtCorreo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="60px"
+        android:layout_marginTop="32dp"
+        android:fontFamily="@font/nunito_bold"
+        android:text="CORREO"
+        android:textColor="@color/teal"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="60px"
+        android:layout_marginRight="70px"
+        android:background="@color/white"
+        android:fontFamily="@font/nunito"
+        android:hint="Correo Electrónico"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:textColorHint="#999999" />
+
+    <TextView
+        android:id="@+id/txtContraseña"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="60px"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/nunito_bold"
+        android:text="CONTRASEÑA"
+        android:textColor="@color/teal"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etContraseña"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="60px"
+        android:layout_marginRight="70px"
+        android:background="@color/white"
+        android:fontFamily="@font/nunito"
+        android:hint="Contraseña"
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:textColorHint="#999999" />
+
+        <!-- Fondo degradado con botón -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/vector2"
+            android:rotation="180">
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:backgroundTint="@color/teal"
+                android:fontFamily="@font/nunito_extrabold"
+                android:rotation="180"
+                android:text="Iniciar sesión"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+        </FrameLayout>
+
+
+
+    </LinearLayout>

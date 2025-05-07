@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F9F9F9">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Título -->
+            <TextView
+                android:id="@+id/detalleTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/nunito_bold"
+                android:text="Hamburguesa al estilo americano"
+                android:textColor="#000000"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <!-- Imagen principal -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+                    <ImageView
+                        android:id="@+id/detalleImagen"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/placeholder"
+                        android:contentDescription="Imagen receta"/>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Datos autor/dificultad/tiempo -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp"
+                android:weightSum="4">
+
+                <ImageView
+                    android:id="@+id/imageViewUser"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_weight="0.3"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/usuario_icono" />
+                <!-- Autor -->
+                <TextView
+                    android:id="@+id/detalleAutor"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.3"
+                android:fontFamily="@font/nunito"
+                android:text="juliaRodriguez"
+                android:textColor="#888888" />
+
+                <!-- Icono de dificultad-->
+                <ImageView
+                    android:id="@+id/imageViewDificultad"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                android:layout_weight="0.5"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:src="@drawable/dificultad_icono" />
+
+                <!-- Dificultad -->
+                <TextView
+                    android:id="@+id/detalleDificultad"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/nunito"
+                    android:gravity="start"
+                android:text="Fácil"
+                android:textColor="#888888" />
+
+                <!-- Icono de duracion-->
+                <ImageView
+                    android:id="@+id/imageViewDuracion"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_weight="0.3"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/reloj_icono" />
+                <!-- Duración -->
+                <TextView
+                    android:id="@+id/detalleDuracion"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:fontFamily="@font/nunito"
+                    android:gravity="end"
+                    android:text="40 min"
+                    android:textColor="#888888" />
+            </LinearLayout>
+
+            <!-- Descripción -->
+            <TextView
+                android:id="@+id/detalleDescripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/nunito_bold"
+                android:text="Descripción de la receta..."
+                android:textColor="#444" />
+
+            <!-- Ingredientes label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#E6F3CC"
+                android:fontFamily="@font/nunito"
+                android:padding="4dp"
+                android:text="Ingredientes:"
+                android:textColor="#6A8300"
+                android:textStyle="bold" />
+
+            <!-- Ingredientes texto -->
+            <TextView
+                android:id="@+id/detalleIngredientes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/nunito"
+                android:text="- Pan brioche\n- Queso\n- Carne picada\n- Cebolla morada"
+                android:textColor="#444"
+                tools:ignore="HardcodedText" />
+
+
+            <!-- Instrucciones label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#E6F3CC"
+                android:fontFamily="@font/nunito"
+                android:padding="4dp"
+                android:text="Instrucciones:"
+                android:textColor="#6A8300"
+                android:textStyle="bold" />
+
+            <!-- Instrucciones -->
+            <TextView
+                android:id="@+id/detalleInstrucciones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/nunito"
+                android:text="1. Mezcla los ingredientes...\n2. Cocina..."
+                android:textColor="#444" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Menú inferior -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/menuInferior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/white"
+        app:menu="@menu/menu_navegacion"
+        app:itemIconTint="@color/color_barra_selector"
+        app:itemTextColor="@color/color_barra_selector"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

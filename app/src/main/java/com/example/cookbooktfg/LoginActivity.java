@@ -1,0 +1,99 @@
+package com.example.cookbooktfg;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.firebase.auth.FirebaseAuth;
+
+public class LoginActivity extends AppCompatActivity{
+
+    private EditText etEmail, etContraseña;
+    private Button btnLogin;
+    private TextView tvRegister;
+    private ImageButton btnVolver;
+    private FirebaseAuth auth; // Para autenticar usuarios
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.login_activity);
+
+        // Inicializamos Firebase Auth
+        auth = FirebaseAuth.getInstance();
+
+        // Vistas
+        etEmail = findViewById(R.id.etEmail);
+        etContraseña = findViewById(R.id.etContraseña);
+        btnLogin = findViewById(R.id.btnLogin);
+        tvRegister = findViewById(R.id.tvRegister);
+        btnVolver = findViewById(R.id.btnVolver);
+
+        btnVolver.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, BienvenidosActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+        // Botón de Registrarse
+        tvRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegistroActivity.class);
+            startActivity(intent);
+        });
+
+        // Botón de Login
+        btnLogin.setOnClickListener(v -> iniciarSesion());
+    }
+
+    private void iniciarSesion() {
+        String email = etEmail.getText().toString().trim();
+        String contraseña = etContraseña.getText().toString().trim();
+
+        if (TextUtils.isEmpty(email)) {
+            etEmail.setError("Introduce tu correo");
+            return;
+        }
+
+        if (TextUtils.isEmpty(contraseña)) {
+            etContraseña.setError("Introduce tu contraseña");
+            return;
+        }
+
+        // Comprobamos en Firebase
+        auth.signInWithEmailAndPassword(email, contraseña)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Inicio de sesión correcto
+                        Toast.makeText(LoginActivity.this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(LoginActivity.this, MenuPrincipalActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        // Fallo
+                        Toast.makeText(LoginActivity.this, "Error en el inicio de sesión", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // Vuelve a la actividad de Bienvenida
+            Intent intent = new Intent(LoginActivity.this, BienvenidosActivity.class);
+            startActivity(intent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+}
