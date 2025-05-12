@@ -1,41 +1,43 @@
 package com.example.cookbooktfg;
 
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.Exclude;
 import com.google.type.DateTime;
 
+import java.util.Date;
 import java.util.List;
 
 public class Receta {
+    @Exclude
     private String id;
-    private String idCreador;
+    private DocumentReference idCreador;
     private String descripcion;
     private String nombre;
     private String dificultad;
     private String duracion;
-    private DateTime fechaCreacion;
+    private Date fechaCreacion;
     private String imagen;
-    private List<String> ingredientes;
-    private List<String> instrucciones;
+    private List<DocumentReference> ingredientes;
+    private List<DocumentReference> instrucciones;
     private boolean favorito;
 
     public Receta() {
         // Constructor vacío Firestore
     }
 
-    public Receta(String id, String idCreador, String descripcion, String nombre, String dificultad, String duracion, DateTime fechaCreacion, String imagen, List<String> ingredientes, List<String> instrucciones, boolean favorito) {
+    public Receta(String id, DocumentReference idCreador, String nombre, String descripcion, String dificultad, String duracion, String imagen, Date fechaCreacion, List<DocumentReference> ingredientes, List<DocumentReference> instrucciones, boolean favorito) {
         this.id = id;
         this.idCreador = idCreador;
-        this.descripcion = descripcion;
         this.nombre = nombre;
+        this.descripcion = descripcion;
         this.dificultad = dificultad;
         this.duracion = duracion;
-        this.fechaCreacion = fechaCreacion;
         this.imagen = imagen;
+        this.fechaCreacion = fechaCreacion;
         this.ingredientes = ingredientes;
         this.instrucciones = instrucciones;
         this.favorito = favorito;
     }
-
-    // Getters y Setters
 
     public String getId() {
         return id;
@@ -45,11 +47,11 @@ public class Receta {
         this.id = id;
     }
 
-    public String getIdCreador() {
+    public DocumentReference getIdCreador() {
         return idCreador;
     }
 
-    public void setIdCreador(String idCreador) {
+    public void setIdCreador(DocumentReference idCreador) {
         this.idCreador = idCreador;
     }
 
@@ -85,11 +87,11 @@ public class Receta {
         this.duracion = duracion;
     }
 
-    public DateTime getFechaCreacion() {
+    public Date getFechaCreacion() {
         return fechaCreacion;
     }
 
-    public void setFechaCreacion(DateTime fechaCreacion) {
+    public void setFechaCreacion(Date fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
     }
 
@@ -101,19 +103,19 @@ public class Receta {
         this.imagen = imagen;
     }
 
-    public List<String> getIngredientes() {
+    public List<DocumentReference> getIngredientes() {
         return ingredientes;
     }
 
-    public void setIngredientes(List<String> ingredientes) {
+    public void setIngredientes(List<DocumentReference> ingredientes) {
         this.ingredientes = ingredientes;
     }
 
-    public List<String> getInstrucciones() {
+    public List<DocumentReference> getInstrucciones() {
         return instrucciones;
     }
 
-    public void setInstrucciones(List<String> instrucciones) {
+    public void setInstrucciones(List<DocumentReference> instrucciones) {
         this.instrucciones = instrucciones;
     }
 

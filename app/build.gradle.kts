@@ -1,7 +1,6 @@
 plugins {
-//    alias(libs.plugins.android.application)
-    id ("com.android.application")
-    id ("com.google.gms.google-services")
+    id("com.android.application")
+    id("com.google.gms.google-services")  // Plugin de Google Services
 }
 
 android {
@@ -9,12 +8,11 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.cookbooktfg"
+        applicationId = "com.example.cookbooktfg"  // ¡Verifica que coincida con Firebase!
         minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -39,21 +37,22 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
+    // Firebase (usando BOM para versiones automáticas)
     implementation(platform(libs.firebase.bom))
     implementation(libs.google.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
-    implementation(libs.firebase.storage)
 
+    // Glide y CircleImageView
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation(libs.circleimageview)
 
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
-    implementation("androidx.core:core-splashscreen:1.0.0")
-    implementation(libs.circleimageview)
-
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
-
 }

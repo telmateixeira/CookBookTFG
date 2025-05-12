@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -44,22 +45,25 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
         holder.titulo.setText(receta.getNombre());
 
-        FirebaseFirestore.getInstance().collection("usuarios")
-                .document(receta.getIdCreador())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String nombreAutor = documentSnapshot.getString("nombre");
-                        holder.autor.setText("Autor: " + nombreAutor);
-                    }
-                });
+        // Mostrar nombre del autor
+        if (receta.getIdCreador() != null) {
+            receta.getIdCreador().get().addOnSuccessListener(documentSnapshot -> {
+                // tu lógica de cargar datos del usuario
+            }).addOnFailureListener(e -> {
+                Log.e("RecetaAdapter", "Error al obtener usuario", e);
+            });
+        } else {
+            // Puedes poner un valor por defecto si quieres, como "Anónimo"
+            holder.autor.setText("Anónimo");
+        }
 
 
+//        // Cargar imagen con Glide
+//        Glide.with(context)
+//                .load(receta.getImagen())
+//                .placeholder(R.drawable.placeholder)
+//                .into(holder.imagenReceta);
 
-        Glide.with(context)
-                .load(receta.getImagen())
-                .placeholder(R.drawable.placeholder)
-                .into(holder.imagenReceta);
 
         if (receta.isFavorito()) {
             holder.botonFavorito.setImageResource(R.drawable.favoritos_icono);
@@ -79,6 +83,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
                     .addOnFailureListener(e -> Log.e("Firestore", "Error actualizando favorito", e));
         });
 
+        // Abrir detalle
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, DetalleRecetaActivity.class);
             intent.putExtra("recetaId", receta.getId());
@@ -93,17 +98,22 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
     public void filtrarPorIngrediente(String texto) {
         List<Receta> listaFiltrada = new ArrayList<>();
+
         for (Receta r : recetaOriginal) {
-            for (String ingrediente : r.getIngredientes()) {
-                if (ingrediente.toLowerCase().contains(texto.toLowerCase())) {
-                    listaFiltrada.add(r);
-                    break;
-                }
+            for (DocumentReference ingredienteRef : r.getIngredientes()) {
+                ingredienteRef.get().addOnSuccessListener(documentSnapshot -> {
+                    String nombreIngrediente = documentSnapshot.getString("nombre");
+                    if (nombreIngrediente != null && nombreIngrediente.toLowerCase().contains(texto.toLowerCase())) {
+                        if (!listaFiltrada.contains(r)) {
+                            listaFiltrada.add(r);
+                            recetaList.clear();
+                            recetaList.addAll(listaFiltrada);
+                            notifyDataSetChanged();
+                        }
+                    }
+                });
             }
         }
-        recetaList.clear();
-        recetaList.addAll(listaFiltrada);
-        notifyDataSetChanged();
     }
 
     public void actualizarRecetas(List<Receta> nuevasRecetas) {

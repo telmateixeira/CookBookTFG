@@ -9,9 +9,10 @@
     android:background="@color/white">
 
     <!-- Encabezado superior con botón de volver e ir a login -->
+
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="116dp"
+        android:layout_height="86dp"
         android:background="@drawable/vector">
 
         <ImageButton
@@ -139,13 +140,33 @@
         >
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etContraseña"
+            android:id="@+id/etContrasena"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Botón de registro sobre fondo degradado -->
+    <!--Repetir la contraseña para mas seguridad-->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="70dp"
+        android:hint="Repite la contraseña"
+        app:boxCornerRadiusBottomEnd="20dp"
+        app:boxCornerRadiusBottomStart="20dp"
+        app:boxCornerRadiusTopEnd="20dp"
+        app:boxCornerRadiusTopStart="20dp"
+        app:boxStrokeColor="@color/teal">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etRepContrasena"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -117,16 +118,42 @@ public class MenuPrincipalActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Receta> recetasCargadas = new ArrayList<>();
+
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Receta receta = doc.toObject(Receta.class);
-                        receta.setId(doc.getId());
-                        Log.d("Firestore", "Receta cargada: " + receta.getNombre());
+                        Receta receta = new Receta();
+
+                        receta.setId(doc.getId()); // ID automático de Firestore
+                        receta.setNombre(doc.getString("nombre"));
+                        receta.setDescripcion(doc.getString("descripcion"));
+                        receta.setImagen(doc.getString("imagen"));
+                        receta.setDificultad(doc.getString("dificultad"));
+                        receta.setDuracion(doc.getString("duracion"));
+
+                        // Favorito como booleano
+                        Boolean favorito = doc.getBoolean("favorito");
+                        receta.setFavorito(favorito != null ? favorito : false);
+
+                        receta.setIdCreador(doc.getDocumentReference("idCreador"));
+
+                        List<DocumentReference> ingredientes = (List<DocumentReference>) doc.get("ingredientes");
+                        receta.setIngredientes(ingredientes != null ? ingredientes : new ArrayList<>());
+
+                        List<DocumentReference> instrucciones = (List<DocumentReference>) doc.get("instrucciones");
+                        receta.setInstrucciones(instrucciones != null ? instrucciones : new ArrayList<>());
+
                         recetasCargadas.add(receta);
+                        Log.d("Firestore", "Receta cargada: " + receta.getNombre());
                     }
+
+                    //Aquí es donde deberías actualizar el adaptador
                     adapter.actualizarRecetas(recetasCargadas);
+                    Log.d("Firestore", "Recetas cargadas: " + recetasCargadas.size());
+
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error al obtener recetas", e));
     }
+
+
 
 
 }
