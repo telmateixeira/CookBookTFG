@@ -13,7 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -25,6 +24,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
     private List<Receta> recetaList;
     private List<Receta> recetaOriginal;
     private Context context;
+    private FirebaseFirestore db;
 
     public RecetaAdapter(List<Receta> recetaList, Context context) {
         this.recetaList = new ArrayList<>(recetaList);
@@ -42,18 +42,26 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
     @Override
     public void onBindViewHolder(@NonNull RecetaViewHolder holder, int position) {
         Receta receta = recetaList.get(position);
-
+        db = FirebaseFirestore.getInstance();
         holder.titulo.setText(receta.getNombre());
 
-        // Mostrar nombre del autor
-        if (receta.getIdCreador() != null) {
-            receta.getIdCreador().get().addOnSuccessListener(documentSnapshot -> {
-                // tu lógica de cargar datos del usuario
-            }).addOnFailureListener(e -> {
-                Log.e("RecetaAdapter", "Error al obtener usuario", e);
-            });
+        if (receta.getCreadorId() != null && !receta.getCreadorId().isEmpty()) {
+            db.collection("usuarios")
+                    .document(receta.getCreadorId()) // Acceso directo por UID
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String nombreAutor = documentSnapshot.getString("nombre");
+                            holder.autor.setText(nombreAutor != null ? nombreAutor : "Anónimo");
+                        } else {
+                            holder.autor.setText("Usuario eliminado");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("RecetaAdapter", "Error al obtener usuario", e);
+                        holder.autor.setText("Error cargando autor");
+                    });
         } else {
-            // Puedes poner un valor por defecto si quieres, como "Anónimo"
             holder.autor.setText("Anónimo");
         }
 
@@ -66,9 +74,9 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
 
         if (receta.isFavorito()) {
-            holder.botonFavorito.setImageResource(R.drawable.favoritos_icono);
-        } else {
             holder.botonFavorito.setImageResource(R.drawable.favoritos_icono_naranja);
+        } else {
+            holder.botonFavorito.setImageResource(R.drawable.favoritos_icono);
         }
 
         holder.botonFavorito.setOnClickListener(v -> {

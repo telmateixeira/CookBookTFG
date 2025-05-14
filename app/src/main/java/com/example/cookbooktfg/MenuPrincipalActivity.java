@@ -10,6 +10,8 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,7 +35,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
     private ImageButton btnFiltro;
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton fabCrearReceta;
-
+    private ActivityResultLauncher<Intent> crearRecetaLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,13 +52,24 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+        crearRecetaLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        // Vuelve a cargar las recetas desde Firestore
+                        obtenerRecetasDeFirestore();
+                    }
+                }
+        );
+
         fabCrearReceta = findViewById(R.id.fab_crear_receta);
 
 // Abrir actividad para crear receta
         fabCrearReceta.setOnClickListener(v -> {
             Intent intent = new Intent(MenuPrincipalActivity.this, CrearRecetaActivity.class);
-            startActivity(intent);
+            crearRecetaLauncher.launch(intent);
         });
+
 
 // Ocultar/mostrar FAB al hacer scroll
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -133,7 +146,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
                         Boolean favorito = doc.getBoolean("favorito");
                         receta.setFavorito(favorito != null ? favorito : false);
 
-                        receta.setIdCreador(doc.getDocumentReference("idCreador"));
+                        receta.setCreadorId(doc.getString("creadorId"));
 
                         List<DocumentReference> ingredientes = (List<DocumentReference>) doc.get("ingredientes");
                         receta.setIngredientes(ingredientes != null ? ingredientes : new ArrayList<>());
@@ -152,8 +165,6 @@ public class MenuPrincipalActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Error al obtener recetas", e));
     }
-
-
 
 
 }

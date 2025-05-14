@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.google.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.storage)
 
     // Glide y CircleImageView
     implementation("com.github.bumptech.glide:glide:4.16.0")
@@ -55,4 +56,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+
 }

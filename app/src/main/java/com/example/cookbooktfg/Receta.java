@@ -2,7 +2,6 @@ package com.example.cookbooktfg;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.Exclude;
-import com.google.type.DateTime;
 
 import java.util.Date;
 import java.util.List;
@@ -10,7 +9,7 @@ import java.util.List;
 public class Receta {
     @Exclude
     private String id;
-    private DocumentReference idCreador;
+    private String creadorId;
     private String descripcion;
     private String nombre;
     private String dificultad;
@@ -25,9 +24,9 @@ public class Receta {
         // Constructor vacío Firestore
     }
 
-    public Receta(String id, DocumentReference idCreador, String nombre, String descripcion, String dificultad, String duracion, String imagen, Date fechaCreacion, List<DocumentReference> ingredientes, List<DocumentReference> instrucciones, boolean favorito) {
+    public Receta(String id, String creadorId, String nombre, String descripcion, String dificultad, String duracion, String imagen, Date fechaCreacion, List<DocumentReference> ingredientes, List<DocumentReference> instrucciones, boolean favorito) {
         this.id = id;
-        this.idCreador = idCreador;
+        this.creadorId = creadorId;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.dificultad = dificultad;
@@ -47,12 +46,12 @@ public class Receta {
         this.id = id;
     }
 
-    public DocumentReference getIdCreador() {
-        return idCreador;
+    public String getCreadorId() {
+        return creadorId;
     }
 
-    public void setIdCreador(DocumentReference idCreador) {
-        this.idCreador = idCreador;
+    public void setCreadorId(String creadorId) {
+        this.creadorId = creadorId;
     }
 
     public String getDescripcion() {
