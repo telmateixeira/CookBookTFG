@@ -16,6 +16,25 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/btnVolver"
+                    android:layout_width="33dp"
+                    android:layout_height="29dp"
+                    android:scaleType="fitXY"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@null"
+                    app:srcCompat="@drawable/flechasalida"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            </RelativeLayout>
 
             <!-- Título -->
             <TextView
@@ -125,7 +144,7 @@
                 android:text="Descripción de la receta..."
                 android:textColor="#444" />
 
-            <!-- Ingredientes label -->
+            <!-- Ingredientes -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -137,16 +156,12 @@
                 android:textColor="#6A8300"
                 android:textStyle="bold" />
 
-            <!-- Ingredientes texto -->
-            <TextView
-                android:id="@+id/detalleIngredientes"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvIngredientes"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="97dp"
                 android:layout_marginBottom="16dp"
-                android:fontFamily="@font/nunito"
-                android:text="- Pan brioche\n- Queso\n- Carne picada\n- Cebolla morada"
-                android:textColor="#444"
-                tools:ignore="HardcodedText" />
+                tools:listitem="@layout/item_ingrediente" />
 
 
             <!-- Instrucciones label -->
@@ -172,15 +187,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Menú inferior -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/menuInferior"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@color/white"
-        app:menu="@menu/menu_navegacion"
-        app:itemIconTint="@color/color_barra_selector"
-        app:itemTextColor="@color/color_barra_selector"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

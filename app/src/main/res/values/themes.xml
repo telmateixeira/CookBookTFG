@@ -16,7 +16,7 @@
         <item name="textAppearanceBody2">@style/CustomBodyText</item>
     </style>
     <style name="CustomBodyText" parent="TextAppearance.Material3.BodyLarge">
-        <item name="fontFamily">@font/nunito</item>
+        <item name="fontFamily">@font/nunito_bold</item>
     </style>
 
     <style name="Theme.CookBookTFG" parent="Base.Theme.CookBookTFG" />

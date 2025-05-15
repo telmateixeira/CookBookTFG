@@ -1,16 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:layout_marginBottom="8dp">
+    android:padding="4dp">
 
-    <AutoCompleteTextView
-        android:id="@+id/autoIngrediente"
+    <TextView
+        android:id="@+id/tvTipoNombre"
         android:layout_width="0dp"
-        android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:hint="Buscar ingrediente"
-        android:background="@drawable/fondo_buscador"
-        android:padding="12dp" />
+        android:layout_weight="1"
+        android:fontFamily="@font/nunito_bold"
+        android:textColor="#444"
+        android:textSize="16sp"/>
 
+    <TextView
+        android:id="@+id/tvCantidad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito"
+        android:textColor="#6A8300"
+        android:textSize="16sp"/>
 </LinearLayout>

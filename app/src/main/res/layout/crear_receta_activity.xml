@@ -107,37 +107,59 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="144dp"
-            android:layout_marginBottom="8dp"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="2dp">
 
-            <!--<AutoCompleteTextView
-                android:id="@+id/autoIngrediente"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:hint="Buscar ingrediente"
-                android:background="@drawable/fondo_buscador"
-                android:padding="12dp" /> -->
-
+            <!-- Campo Tipo -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint=""
-                android:fontFamily="@font/nunito_bold">
+                android:hint="Tipo (Leche)"
+                android:paddingStart="15dp"
+                android:paddingEnd="10dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <AutoCompleteTextView
-                    android:id="@+id/autoIngrediente"
+                    android:id="@+id/autoTipoIngrediente"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/background_light"
-                    android:fontFamily="@font/nunito_bold"
-                    android:hint="Escribe un ingrediente"
-                    android:padding="12dp"
-                    android:textColor="#10111111"
-                    android:textSize="16sp" />
-
+                    android:layout_height="60dp"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="@font/nunito_bold"/>
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Campo Nombre -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Variante (Semidesnatada)"
+                android:paddingStart="15dp"
+                android:paddingEnd="10dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <AutoCompleteTextView
+                    android:id="@+id/autoNombreIngrediente"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="@font/nunito_bold"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Campo Cantidad -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cantidad (200 ml)"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <EditText
+                    android:id="@+id/etCantidad"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="@font/nunito_bold"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
 
             <Button
                 android:id="@+id/btnAgregarIngrediente"
