@@ -83,13 +83,17 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         duracion.setText(document.getString("duracion") + " min");
 
         // Cargar imagen con Glide
-        String imagenUrl = document.getString("imagen");
-        if (imagenUrl != null && !imagenUrl.isEmpty()) {
+        List<String> imagenesUrls = (List<String>) document.get("imagenes");
+        if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
+            // Cargar la primera imagen (o implementar un ViewPager para varias)
             Glide.with(this)
-                    .load(imagenUrl)
+                    .load(imagenesUrls.get(0))
                     .placeholder(R.drawable.placeholder)
                     .into(imagen);
+        } else {
+            imagen.setImageResource(R.drawable.placeholder);
         }
+
 
         // Cargar autor
         String creadorId = document.getString("creadorId");

@@ -15,7 +15,7 @@ public class Receta {
     private String dificultad;
     private String duracion;
     private Date fechaCreacion;
-    private String imagen;
+    private List<String> imagenes;
     private List<DocumentReference> ingredientes;
     private List<DocumentReference> instrucciones;
     private boolean favorito;
@@ -24,14 +24,14 @@ public class Receta {
         // Constructor vacío Firestore
     }
 
-    public Receta(String id, String creadorId, String nombre, String descripcion, String dificultad, String duracion, String imagen, Date fechaCreacion, List<DocumentReference> ingredientes, List<DocumentReference> instrucciones, boolean favorito) {
+    public Receta(String id, String creadorId, String nombre, String descripcion, String dificultad, String duracion, List<String> imagenes, Date fechaCreacion, List<DocumentReference> ingredientes, List<DocumentReference> instrucciones, boolean favorito) {
         this.id = id;
         this.creadorId = creadorId;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.dificultad = dificultad;
         this.duracion = duracion;
-        this.imagen = imagen;
+        this.imagenes = imagenes;
         this.fechaCreacion = fechaCreacion;
         this.ingredientes = ingredientes;
         this.instrucciones = instrucciones;
@@ -94,12 +94,12 @@ public class Receta {
         this.fechaCreacion = fechaCreacion;
     }
 
-    public String getImagen() {
-        return imagen;
+    public List<String> getImagenes() {
+        return imagenes;
     }
 
-    public void setImagen(String imagen) {
-        this.imagen = imagen;
+    public void setImagenes(List<String> imagenes) {
+        this.imagenes = imagenes;
     }
 
     public List<DocumentReference> getIngredientes() {

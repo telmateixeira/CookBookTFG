@@ -25,11 +25,13 @@ public class RecetaRepositorio {
                         receta.setId(doc.getId());
                         receta.setNombre(doc.getString("nombre"));
                         receta.setDescripcion(doc.getString("descripcion"));
-                        receta.setImagen(doc.getString("imagen"));
                         receta.setDificultad(doc.getString("dificultad"));
                         receta.setDuracion(doc.getString("duracion"));
                         receta.setFavorito(Boolean.TRUE.equals(doc.getBoolean("favorito")));
                         receta.setCreadorId(doc.getString("creadorId"));
+
+                        List<String> imagenes = (List<String>) doc.get("imagenes");
+                        receta.setImagenes(imagenes !=null ? imagenes : new ArrayList<>());
 
                         List<DocumentReference> ingredientes = (List<DocumentReference>) doc.get("ingredientes");
                         receta.setIngredientes(ingredientes != null ? ingredientes : new ArrayList<>());
@@ -57,11 +59,13 @@ public class RecetaRepositorio {
                         receta.setId(doc.getId());
                         receta.setNombre(doc.getString("nombre"));
                         receta.setDescripcion(doc.getString("descripcion"));
-                        receta.setImagen(doc.getString("imagen"));
                         receta.setDificultad(doc.getString("dificultad"));
                         receta.setDuracion(doc.getString("duracion"));
                         receta.setFavorito(Boolean.TRUE.equals(doc.getBoolean("favorito")));
                         receta.setCreadorId(doc.getString("creadorId"));
+
+                        List<String> imagenes = (List<String>) doc.get("imagenes");
+                        receta.setImagenes(imagenes !=null ? imagenes : new ArrayList<>());
 
                         List<DocumentReference> ingredientes = (List<DocumentReference>) doc.get("ingredientes");
                         receta.setIngredientes(ingredientes != null ? ingredientes : new ArrayList<>());

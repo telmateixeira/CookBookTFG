@@ -1,6 +1,8 @@
 package com.example.cookbooktfg;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.inputmethod.InsertGesture;
@@ -9,6 +11,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +26,8 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.*;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,7 +41,7 @@ public class CrearRecetaActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private List<String> sugerenciasIngredientes = new ArrayList<>();
     private EditText etPaso, etCantidad;
-    private Button btnAgregarPaso;
+    private Button btnAgregarPaso, btnAgregarIngredientes;
     private RecyclerView rvInstrucciones;
     private ImageButton btnVolver;
 
@@ -44,6 +50,11 @@ public class CrearRecetaActivity extends AppCompatActivity {
 
     private List<DocumentReference> instruccionesReferencias = new ArrayList<>();
 
+    private static final int REQUEST_CODE_GALERIA = 1001;
+    private static final int REQUEST_CODE_CAMARA = 1002;
+    private List<Uri> listaImagenesSeleccionadas = new ArrayList<>();
+    private LinearLayout contenedorImagenes;
+    private Button btnSeleccionarImagenes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +63,13 @@ public class CrearRecetaActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         btnVolver = findViewById(R.id.btnVolver);
+        btnSeleccionarImagenes = findViewById(R.id.btnSeleccionarImagenes);
+        contenedorImagenes = findViewById(R.id.contenedorImagenes);
         autoTipoIng = findViewById(R.id.autoTipoIngrediente);
         autoNombreIng = findViewById(R.id.autoNombreIngrediente);
         etCantidad = findViewById(R.id.etCantidad);
         chipGroupIngredientes = findViewById(R.id.chipGroupIngredientes);
-        Button btnAgregarIngredientes = findViewById(R.id.btnAgregarIngrediente);
+        btnAgregarIngredientes = findViewById(R.id.btnAgregarIngrediente);
         AutoCompleteTextView autoCompleteDificultad = findViewById(R.id.autoCompleteDificultad);
         String[] opcionesDificultad = new String[] { "Fácil", "Media", "Difícil" };;
 
@@ -86,13 +99,32 @@ public class CrearRecetaActivity extends AppCompatActivity {
 
         // Botón para añadir ingrediente (existente o nuevo)
         btnAgregarIngredientes.setOnClickListener(v -> {
-            String tipo = autoTipoIng.getText().toString();
-            String nombre = autoNombreIng.getText().toString();
-            String cantidad = etCantidad.getText().toString();
+            String tipo = autoTipoIng.getText().toString().trim();
+            String nombre = autoNombreIng.getText().toString().trim();
+            String cantidad = etCantidad.getText().toString().trim();
 
             if(!tipo.isEmpty() && !nombre.isEmpty() && !cantidad.isEmpty()) {
-                IngredienteModelo ingrediente = new IngredienteModelo(tipo, nombre, cantidad);
-                agregarChipIngrediente(ingrediente);
+                // Verificar si es una sugerencia existente
+                String busqueda = tipo + " - " + nombre;
+                if(referenciaMap.containsKey(busqueda)) {
+                    // Es un ingrediente existente
+                    DocumentReference ref = referenciaMap.get(busqueda);
+                    IngredienteModelo ingrediente = new IngredienteModelo(tipo, nombre, cantidad);
+                    ingrediente.setId(ref.getId()); // Guardar referencia al documento
+                    agregarChipIngrediente(ingrediente);
+                } else {
+                    // Es un nuevo ingrediente - crearlo primero
+                    obtenerOcrearIngrediente(nombre, tipo, cantidad, new OnIngredienteListoListener() {
+                        @Override
+                        public void onIngredienteListo(DocumentReference ref) {
+                            runOnUiThread(() -> {
+                                IngredienteModelo ingrediente = new IngredienteModelo(tipo, nombre, cantidad);
+                                ingrediente.setId(ref.getId());
+                                agregarChipIngrediente(ingrediente);
+                            });
+                        }
+                    });
+                }
 
                 // Limpiar campos
                 autoTipoIng.setText("");
@@ -120,7 +152,7 @@ public class CrearRecetaActivity extends AppCompatActivity {
                 return;
             }
 
-            guardarInstrucciones(() -> guardarRecetaEnFirestore(nombre, descripcion, dificultad, duracion, ""));
+            guardarInstrucciones(() -> guardarImagenes(nombre, descripcion, dificultad, duracion));
         });
 
 
@@ -184,7 +216,7 @@ public class CrearRecetaActivity extends AppCompatActivity {
             finish();
         });
 
-
+        btnSeleccionarImagenes.setOnClickListener(v -> abrirGaleria());
     }
 
 
@@ -203,21 +235,72 @@ public class CrearRecetaActivity extends AppCompatActivity {
         chipGroupIngredientes.addView(chip);
     }
 
+    private void guardarImagenes(String nombre, String descripcion, String dificultad,
+                                          String duracion) {
+        // Mostrar progreso
+        ProgressDialog progreso = new ProgressDialog(this);
+        progreso.setMessage("Subiendo receta...");
+        progreso.setCancelable(false);
+        progreso.show();
+
+        // Subir imágenes primero
+        List<String> urlsFinales = new ArrayList<>();
+        if (listaImagenesSeleccionadas.isEmpty()) {
+            Toast.makeText(this, "Agrega al menos una imagen", Toast.LENGTH_SHORT).show();
+            progreso.dismiss();
+            return;
+        }
+
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        FirebaseUser usuario = FirebaseAuth.getInstance().getCurrentUser();
+        String userId = (usuario != null) ? usuario.getUid() : "desconocido";
+
+        // Controlador de imágenes subidas
+        AtomicInteger imagenesSubidas = new AtomicInteger(0);
+
+        for (int i = 0; i < listaImagenesSeleccionadas.size(); i++) {
+            Uri uri = listaImagenesSeleccionadas.get(i);
+            String nombreImagen = "recetas/" + userId + "/" + System.currentTimeMillis() + "_" + i + ".jpg";
+            StorageReference ref = storage.getReference(nombreImagen);
+
+            ref.putFile(uri).continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
+                }
+                return ref.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Uri downloadUri = task.getResult();
+                    urlsFinales.add(downloadUri.toString());
+
+                    if (imagenesSubidas.incrementAndGet() == listaImagenesSeleccionadas.size()) {
+                        // Todas las imágenes subidas, guardar receta
+                        guardarRecetaEnFirestore(nombre, descripcion, dificultad, duracion, urlsFinales);
+                    }
+                } else {
+                    progreso.dismiss();
+                    Toast.makeText(this, "Error al subir imagen: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+
     private void guardarRecetaEnFirestore(String nombre, String descripcion, String dificultad,
-                                          String duracion, String imagenUrl) {
+                                          String duracion, List<String> imagenesUrl) {
         // 1. Obtener lista de ingredientes como Map
-        List<Map<String, Object>> ingredientesData = new ArrayList<>();
+        List<DocumentReference> ingredientesData = new ArrayList<>();
 
         for(int i = 0; i < chipGroupIngredientes.getChildCount(); i++) {
             Chip chip = (Chip) chipGroupIngredientes.getChildAt(i);
             IngredienteModelo ingrediente = (IngredienteModelo) chip.getTag();
 
-            Map<String, Object> ingredienteMap = new HashMap<>();
-            ingredienteMap.put("tipo", ingrediente.getTipo());
-            ingredienteMap.put("nombre", ingrediente.getNombre());
-            ingredienteMap.put("cantidad", ingrediente.getCantidad());
+            // Obtenemos la referencia al documento del ingrediente por su ID
+            DocumentReference ref = FirebaseFirestore.getInstance()
+                    .collection("ingredientes")
+                    .document(ingrediente.getId());
 
-            ingredientesData.add(ingredienteMap);
+            ingredientesData.add(ref);
         }
 
         // 2. Crear objeto receta completo
@@ -226,7 +309,7 @@ public class CrearRecetaActivity extends AppCompatActivity {
         nuevaReceta.put("descripcion", descripcion);
         nuevaReceta.put("dificultad", dificultad);
         nuevaReceta.put("duracion", duracion);
-        nuevaReceta.put("imagen", imagenUrl);
+        nuevaReceta.put("imagenes", imagenesUrl);
         nuevaReceta.put("favorito", false);
         nuevaReceta.put("fechaCreacion", FieldValue.serverTimestamp());
         nuevaReceta.put("ingredientes", ingredientesData);
@@ -283,6 +366,9 @@ public class CrearRecetaActivity extends AppCompatActivity {
     }
 
     private void onSuccess(QuerySnapshot querySnapshot) {
+        sugerenciasIngredientes.clear();
+        referenciaMap.clear();
+
         for (DocumentSnapshot doc : querySnapshot) {
             String tipo = doc.getString("tipo");
             String nombre = doc.getString("nombre");
@@ -300,6 +386,74 @@ public class CrearRecetaActivity extends AppCompatActivity {
         autoTipoIng.setAdapter(adapter);
         autoTipoIng.setThreshold(1);
     }
+
+
+
+    private void abrirGaleria() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Selecciona imágenes"), REQUEST_CODE_GALERIA);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_CODE_GALERIA) {
+                if (data.getClipData() != null) {
+                    int totalItems = data.getClipData().getItemCount();
+                    for (int i = 0; i < totalItems; i++) {
+                        Uri imagenUri = data.getClipData().getItemAt(i).getUri();
+                        listaImagenesSeleccionadas.add(imagenUri);
+                        mostrarMiniatura(imagenUri);
+                    }
+                } else if (data.getData() != null) {
+                    Uri imagenUri = data.getData();
+                    listaImagenesSeleccionadas.add(imagenUri);
+                    mostrarMiniatura(imagenUri);
+                }
+            }
+        }
+    }
+    private void mostrarMiniatura(Uri imagenUri) {
+        ImageView imageView = new ImageView(this);
+        imageView.setLayoutParams(new LinearLayout.LayoutParams(250, 250));
+        imageView.setPadding(8, 8, 8, 8);
+        imageView.setImageURI(imagenUri);
+        contenedorImagenes.addView(imageView);
+    }
+
+    private void obtenerOcrearIngrediente(String nombre, String tipo, String cantidad, OnIngredienteListoListener callback) {
+        FirebaseFirestore.getInstance().collection("ingredientes")
+                .whereEqualTo("nombre", nombre.trim().toLowerCase())
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentReference ref = queryDocumentSnapshots.getDocuments().get(0).getReference();
+                        callback.onIngredienteListo(ref);
+                    } else {
+                        Map<String, Object> nuevoIngrediente = new HashMap<>();
+                        nuevoIngrediente.put("nombre", nombre.trim().toLowerCase());
+                        nuevoIngrediente.put("tipo", tipo);
+                        nuevoIngrediente.put("cantidad", cantidad);
+
+                        FirebaseFirestore.getInstance().collection("ingredientes")
+                                .add(nuevoIngrediente)
+                                .addOnSuccessListener(documentReference -> {
+                                    callback.onIngredienteListo(documentReference);
+                                });
+                    }
+                });
+    }
+
+
+
+    interface OnIngredienteListoListener {
+        void onIngredienteListo(DocumentReference ref);
+    }
+
 }
 
 

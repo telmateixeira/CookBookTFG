@@ -34,9 +34,28 @@
             tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
         </RelativeLayout>
 
-        <!-- Título -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
 
-        <!-- Nombre -->
+            <LinearLayout
+                android:id="@+id/contenedorImagenes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <Button
+            android:id="@+id/btnSeleccionarImagenes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/verde"
+            android:fontFamily="@font/nunito_bold"
+            android:text="Seleccionar imágenes" />
+
+
+        <!-- Título -->
         <EditText
             android:id="@+id/etNombreReceta"
             android:layout_width="match_parent"

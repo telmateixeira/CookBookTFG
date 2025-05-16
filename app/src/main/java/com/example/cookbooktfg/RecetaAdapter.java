@@ -13,6 +13,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -45,6 +48,22 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         db = FirebaseFirestore.getInstance();
         holder.titulo.setText(receta.getNombre());
 
+        // Cargar imagen principal (primera imagen de la lista)
+        if (receta.getImagenes() != null && !receta.getImagenes().isEmpty()) {
+            String primeraImagenUrl = receta.getImagenes().get(0);
+
+            Glide.with(context)
+                    .load(primeraImagenUrl)
+                    .placeholder(R.drawable.placeholder) // Imagen por defecto
+                    .centerCrop()
+                    .transform(new CenterCrop(), new RoundedCorners(16)) // Bordes redondeados
+                    .into(holder.imagenReceta);
+        } else {
+            // Si no hay imágenes, mostrar placeholder
+            holder.imagenReceta.setImageResource(R.drawable.placeholder);
+        }
+
+
         if (receta.getCreadorId() != null && !receta.getCreadorId().isEmpty()) {
             db.collection("usuarios")
                     .document(receta.getCreadorId()) // Acceso directo por UID
@@ -64,13 +83,6 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         } else {
             holder.autor.setText("Anónimo");
         }
-
-
-//        // Cargar imagen con Glide
-//        Glide.with(context)
-//                .load(receta.getImagen())
-//                .placeholder(R.drawable.placeholder)
-//                .into(holder.imagenReceta);
 
 
         if (receta.isFavorito()) {
