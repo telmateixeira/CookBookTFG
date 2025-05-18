@@ -28,6 +28,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
     private List<Receta> recetaOriginal;
     private Context context;
     private FirebaseFirestore db;
+    private List<String> ingredientesFiltro = new ArrayList<>();
 
     public RecetaAdapter(List<Receta> recetaList, Context context) {
         this.recetaList = new ArrayList<>(recetaList);
@@ -134,6 +135,61 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
                 });
             }
         }
+    }
+
+    public void filtrarPorNombre(String texto) {
+        List<Receta> listaFiltrada = new ArrayList<>();
+        texto = texto.toLowerCase().trim();
+
+        for (Receta receta : recetaOriginal) {
+            if (receta.getNombre().toLowerCase().contains(texto)) {
+                if (ingredientesFiltro.isEmpty() || contieneIngredientes(receta, ingredientesFiltro)) {
+                    listaFiltrada.add(receta);
+                }
+            }
+        }
+
+        recetaList.clear();
+        recetaList.addAll(listaFiltrada);
+        notifyDataSetChanged();
+    }
+
+
+    public void filtrarPorIngredientesSeleccionados(List<String> ingredientesSeleccionados) {
+        this.ingredientesFiltro = ingredientesSeleccionados;
+
+        if (ingredientesSeleccionados.isEmpty()) {
+            recetaList.clear();
+            recetaList.addAll(recetaOriginal);
+        } else {
+            List<Receta> listaFiltrada = new ArrayList<>();
+
+            for (Receta receta : recetaOriginal) {
+                if (contieneIngredientes(receta, ingredientesSeleccionados)) {
+                    listaFiltrada.add(receta);
+                }
+            }
+
+            recetaList.clear();
+            recetaList.addAll(listaFiltrada);
+        }
+
+        notifyDataSetChanged();
+    }
+
+
+
+    private boolean contieneIngredientes(Receta receta, List<String> ingredientesBuscados) {
+        if (receta.getIngredientes() == null) return false;
+
+        // Necesitarás implementar esta lógica según cómo almacenas los ingredientes
+        for (DocumentReference ingredienteRef : receta.getIngredientes()) {
+            String idIngrediente = ingredienteRef.getId();
+            if (ingredientesBuscados.contains(idIngrediente)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void actualizarRecetas(List<Receta> nuevasRecetas) {

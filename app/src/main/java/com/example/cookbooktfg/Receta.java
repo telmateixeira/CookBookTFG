@@ -3,6 +3,7 @@ package com.example.cookbooktfg;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.Exclude;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class Receta {
     private Date fechaCreacion;
     private List<String> imagenes;
     private List<DocumentReference> ingredientes;
+    private transient List<String> nombresIngredientes; // transient para que no se guarde en Firestore
     private List<DocumentReference> instrucciones;
     private boolean favorito;
 
@@ -108,6 +110,18 @@ public class Receta {
 
     public void setIngredientes(List<DocumentReference> ingredientes) {
         this.ingredientes = ingredientes;
+    }
+    public List<String> getNombresIngredientes() {
+        if (nombresIngredientes == null) {
+            nombresIngredientes = new ArrayList<>();
+            if (ingredientes != null) {
+                for (DocumentReference ref : ingredientes) {
+                    // Esto debería llenarse cuando cargas las recetas
+                    nombresIngredientes.add(""); // O el nombre real si lo tienes
+                }
+            }
+        }
+        return nombresIngredientes;
     }
 
     public List<DocumentReference> getInstrucciones() {

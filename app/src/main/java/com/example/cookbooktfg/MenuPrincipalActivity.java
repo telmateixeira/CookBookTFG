@@ -19,11 +19,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MenuPrincipalActivity extends AppCompatActivity {
@@ -84,6 +84,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         });
 
 
+
         obtenerRecetasDeFirestore();
         configurarBuscador();
         configurarBottomNavigation();
@@ -93,16 +94,34 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         etBuscar.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.filtrarPorIngrediente(s.toString());
+                adapter.filtrarPorNombre(s.toString());
             }
+
             @Override
             public void afterTextChanged(Editable s) {}
         });
 
         btnFiltro.setOnClickListener(v -> {
-            Toast.makeText(this, "Abrir filtro de ingredientes", Toast.LENGTH_SHORT).show();
+            obtenerIngredientesDisponibles(ingredientes -> {
+                // Ordenar ingredientes por tipo para mejor visualización
+                Collections.sort(ingredientes, (i1, i2) -> {
+                    int tipoCompare = i1.getTipo().compareTo(i2.getTipo());
+                    if (tipoCompare != 0) return tipoCompare;
+                    return i1.getNombre().compareTo(i2.getNombre());
+                });
+
+                FiltroIngredientes.mostrar(this, ingredientes, ingredientesSeleccionados -> {
+                    if (ingredientesSeleccionados.isEmpty()) {
+                        Toast.makeText(this, "Filtro limpiado", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, ingredientesSeleccionados.size() + " ingredientes seleccionados", Toast.LENGTH_SHORT).show();
+                    }
+                    adapter.filtrarPorIngredientesSeleccionados(ingredientesSeleccionados);
+                });
+            });
         });
     }
 
@@ -131,6 +150,39 @@ public class MenuPrincipalActivity extends AppCompatActivity {
             Log.d("Firestore", "Recetas cargadas: " + recetas.size());
         });
     }
+
+    private void obtenerIngredientesDisponibles(OnIngredientesCargadosListener listener) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("ingredientes")
+                .orderBy("tipo")  // Ordenar por tipo para mejor agrupación
+                .orderBy("nombre")  // Luego por nombre
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<IngredienteModelo> ingredientes = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String tipo = doc.getString("tipo");
+                        String nombre = doc.getString("nombre");
+
+                        if (tipo != null && nombre != null) {
+                            IngredienteModelo ingrediente = new IngredienteModelo(tipo, nombre, "");
+                            ingrediente.setId(doc.getId());
+                            ingredientes.add(ingrediente);
+                        }
+                    }
+                    listener.onIngredientesCargados(ingredientes);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al cargar ingredientes", Toast.LENGTH_SHORT).show();
+                    Log.e("MenuPrincipal", "Error al cargar ingredientes", e);
+                });
+    }
+
+
+
+    public interface OnIngredientesCargadosListener {
+        void onIngredientesCargados(List<IngredienteModelo> ingredientes);
+    }
+
 
 
 

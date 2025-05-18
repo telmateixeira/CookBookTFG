@@ -34,26 +34,29 @@
 
             <EditText
                 android:id="@+id/etBuscar"
-                android:layout_width="304dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="Buscar"
+                android:hint="Buscar recetas..."
                 android:inputType="text"
                 android:minHeight="48dp"
                 android:paddingStart="8dp"
                 android:textColor="@color/black"
+                android:maxLines="1"
                 android:textColorHint="@color/grey_icono" />
 
             <ImageButton
                 android:id="@+id/btnFiltro"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:contentDescription="Filtrar por ingredientes"
                 android:src="@drawable/icono_filtro"
-                android:background="@android:color/transparent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
                 tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
+
 
         <!-- Lista de recetas -->
         <androidx.recyclerview.widget.RecyclerView
