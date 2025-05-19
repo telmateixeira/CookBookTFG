@@ -99,9 +99,9 @@ public class CrearRecetaActivity extends AppCompatActivity {
 
         // Botón para añadir ingrediente (existente o nuevo)
         btnAgregarIngredientes.setOnClickListener(v -> {
-            String tipo = autoTipoIng.getText().toString().trim();
-            String nombre = autoNombreIng.getText().toString().trim();
-            String cantidad = etCantidad.getText().toString().trim();
+            String tipo = capitalizarTexto(autoTipoIng.getText().toString().trim());
+            String nombre = capitalizarTexto(autoNombreIng.getText().toString().trim());
+            String cantidad = capitalizarTexto(etCantidad.getText().toString().trim());
 
             if(!tipo.isEmpty() && !nombre.isEmpty() && !cantidad.isEmpty()) {
                 // Verificar si es una sugerencia existente
@@ -219,6 +219,13 @@ public class CrearRecetaActivity extends AppCompatActivity {
         btnSeleccionarImagenes.setOnClickListener(v -> abrirGaleria());
     }
 
+    // Metodo auxiliar para capitalizar texto
+    private String capitalizarTexto(String texto) {
+        if (texto == null || texto.isEmpty()) {
+            return texto;
+        }
+        return texto.substring(0, 1).toUpperCase() + texto.substring(1).toLowerCase();
+    }
 
     private void agregarChipIngrediente(IngredienteModelo ingrediente) {
         Chip chip = new Chip(this);
@@ -435,7 +442,7 @@ public class CrearRecetaActivity extends AppCompatActivity {
                         callback.onIngredienteListo(ref);
                     } else {
                         Map<String, Object> nuevoIngrediente = new HashMap<>();
-                        nuevoIngrediente.put("nombre", nombre.trim().toLowerCase());
+                        nuevoIngrediente.put("nombre", nombre.trim());
                         nuevoIngrediente.put("tipo", tipo);
                         nuevoIngrediente.put("cantidad", cantidad);
 
