@@ -178,9 +178,11 @@ public class RegistroActivity extends AppCompatActivity {
                                             subirImagenYRegistrar(uid, nombre, email, progressDialog);
                                         } else {
                                             progressDialog.dismiss();
-                                            Toast.makeText(RegistroActivity.this, "Registro exitoso", Toast.LENGTH_SHORT).show();
-                                            startActivity(new Intent(RegistroActivity.this, MenuPrincipalActivity.class));
+                                            Toast.makeText(RegistroActivity.this, "Registro exitoso. Inicia sesión para continuar", Toast.LENGTH_SHORT).show();
+                                            startActivity(new Intent(RegistroActivity.this, LoginActivity.class));
                                             finish();
+
+
                                         }
                                     });
 
@@ -323,9 +325,10 @@ public class RegistroActivity extends AppCompatActivity {
                         .update("fotoPerfil", uri.toString())
                         .addOnSuccessListener(aVoid -> {
                             progressDialog.dismiss();
-                            Toast.makeText(RegistroActivity.this, "Registro exitoso!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(RegistroActivity.this, MenuPrincipalActivity.class));
+                            Toast.makeText(RegistroActivity.this, "Registro exitoso. Inicia sesión para continuar", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(RegistroActivity.this, LoginActivity.class));
                             finish();
+
                         })
                         .addOnFailureListener(e -> {
                             progressDialog.dismiss();

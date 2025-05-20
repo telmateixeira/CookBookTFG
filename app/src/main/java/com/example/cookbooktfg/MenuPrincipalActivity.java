@@ -46,6 +46,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         etBuscar = findViewById(R.id.etBuscar);
         btnFiltro = findViewById(R.id.btnFiltro);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView.setSelectedItemId(R.id.nav_inicio);
 
         recetaList = new ArrayList<>();
         adapter = new RecetaAdapter(recetaList, this);
@@ -131,17 +132,31 @@ public class MenuPrincipalActivity extends AppCompatActivity {
             if (id == R.id.nav_inicio) {
                 return true;
             } else if (id == R.id.nav_favoritos) {
-                startActivity(new Intent(this, FavoritosActivity.class));
+                Intent intent = new Intent(this, FavoritosActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+
                 return true;
             } else if (id == R.id.nav_historial) {
-                startActivity(new Intent(this, HistorialActivity.class));
+                Intent intent = new Intent(this, HistorialActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_ajustes) {
-                startActivity(new Intent(this, AjustesUserActivity.class));
+                Intent intent = new Intent(this, AjustesUserActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+
                 return true;
             }
             return false;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        obtenerRecetasDeFirestore(); // Esto recarga el adaptador y actualiza favoritos
     }
 
     private void obtenerRecetasDeFirestore() {

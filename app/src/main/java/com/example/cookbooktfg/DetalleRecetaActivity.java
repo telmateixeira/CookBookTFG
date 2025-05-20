@@ -12,11 +12,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,6 +65,7 @@ public class DetalleRecetaActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         mostrarDatosReceta(documentSnapshot);
+                        registrarVisitaEnHistorial(documentSnapshot.getId());
                     } else {
                         Toast.makeText(this, "Receta no encontrada", Toast.LENGTH_SHORT).show();
                         finish();
@@ -202,4 +205,30 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             });
         }
     }
+
+    private void registrarVisitaEnHistorial(String recetaId) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        if (userId == null || recetaId == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        Map<String, Object> entradaHistorial = new HashMap<>();
+        DocumentReference recetaRef = FirebaseFirestore.getInstance()
+                .collection("recetas")
+                .document(recetaId);
+        entradaHistorial.put("recetaId", recetaRef);
+
+        entradaHistorial.put("fechaVisita", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        db.collection("usuarios")
+                .document(userId)
+                .collection("historial")
+                .add(entradaHistorial)
+                .addOnSuccessListener(documentReference ->
+                        Log.d("Historial", "Visita registrada correctamente"))
+                .addOnFailureListener(e ->
+                        Log.e("Historial", "Error al registrar visita", e));
+    }
+
 }

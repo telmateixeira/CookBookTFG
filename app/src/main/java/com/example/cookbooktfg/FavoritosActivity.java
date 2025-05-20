@@ -1,33 +1,104 @@
 package com.example.cookbooktfg;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FavoritosActivity extends AppCompatActivity {
+
     private RecyclerView recyclerViewRecetasFav;
     private RecetaAdapter adapter;
-    private List<Receta> recetaFavs;
+    private List<Receta> recetaFavs = new ArrayList<>();
     private BottomNavigationView bottomNavigationViewFav;
+    private TextView tvEmpty;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.favoritos_activity);
 
+        // Inicialización de vistas
         recyclerViewRecetasFav = findViewById(R.id.recyclerViewRecetasFav);
         bottomNavigationViewFav = findViewById(R.id.bottomNavigationViewFav);
-        adapter = new RecetaAdapter(recetaList, this);
+        tvEmpty = findViewById(R.id.tvEmpty);
 
+        // Configuración del RecyclerView
         recyclerViewRecetasFav.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new RecetaAdapter(recetaFavs, this);
         recyclerViewRecetasFav.setAdapter(adapter);
 
+        adapter.setOnFavoritoCambiadoListener((receta, posicion) -> {
+            adapter.eliminarRecetaEnPosicion(posicion);
+            Log.d("Favoritos", "Receta eliminada visualmente: " + receta.getNombre());
 
+            if (adapter.getItemCount() == 0) {
+                tvEmpty.setVisibility(View.VISIBLE);
+            }
+        });
+
+        // Menú inferior
+        bottomNavigationViewFav.setSelectedItemId(R.id.nav_favoritos);
+        bottomNavigationViewFav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_inicio) {
+                startActivity(new Intent(this, MenuPrincipalActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                return true;
+            } else if (id == R.id.nav_historial) {
+                startActivity(new Intent(this, HistorialActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                return true;
+            } else if (id == R.id.nav_ajustes) {
+                startActivity(new Intent(this, AjustesUserActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                return true;
+            }
+            return false;
+        });
+
+        // Carga los datos reales
+        cargarRecetasFavoritas();
+    }
+
+    private void cargarRecetasFavoritas() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        RecetaRepositorio.obtenerRecetasFavoritas(recetas -> {
+            Log.d("Favoritos", "Recetas favoritas recibidas: " + recetas.size());
+
+            // Update the local list
+            recetaFavs.clear();
+            recetaFavs.addAll(recetas);
+
+            // Update the adapter
+            adapter.actualizarRecetas(recetaFavs);
+
+            // Update empty state
+            tvEmpty.setVisibility(recetaFavs.isEmpty() ? View.VISIBLE : View.GONE);
+
+            for (Receta r : recetaFavs) {
+                Log.d("Favoritos", "→ " + r.getNombre());
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarRecetasFavoritas();
     }
 }

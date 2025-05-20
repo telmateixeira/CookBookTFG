@@ -16,7 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -97,15 +100,33 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
             receta.setFavorito(nuevoEstado);
             notifyItemChanged(holder.getAdapterPosition());
 
-            FirebaseFirestore.getInstance().collection("recetas")
-                    .document(receta.getId())
-                    .update("favorito", nuevoEstado)
-                    .addOnSuccessListener(unused -> Log.d("Firestore", "Favorito actualizado"))
-                    .addOnFailureListener(e -> Log.e("Firestore", "Error actualizando favorito", e));
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            DocumentReference userRef = FirebaseFirestore.getInstance()
+                    .collection("usuarios")
+                    .document(user.getUid());
+            DocumentReference recetaRef = FirebaseFirestore.getInstance()
+                    .collection("recetas")
+                    .document(receta.getId());
+
+            if (nuevoEstado) {
+                userRef.update("favoritos", FieldValue.arrayUnion(recetaRef))
+                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Añadido a favoritos"));
+            } else {
+                userRef.update("favoritos", FieldValue.arrayRemove(recetaRef))
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("Firestore", "Eliminado de favoritos");
+                            if (favoritoCambiadoListener != null) {
+                                favoritoCambiadoListener.onFavoritoQuitado(receta, holder.getAdapterPosition());
+                            }
+                        });
+            }
         });
 
         // Abrir detalle
         holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onRecetaClick(receta.getId());
+            }
             Intent intent = new Intent(context, DetalleRecetaActivity.class);
             intent.putExtra("recetaId", receta.getId());
             context.startActivity(intent);
@@ -114,8 +135,10 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
     @Override
     public int getItemCount() {
+        Log.d("RecetaAdapter", "Total recetas a mostrar: " + recetaList.size());
         return recetaList.size();
     }
+
 
     public void filtrarPorIngrediente(String texto) {
         List<Receta> listaFiltrada = new ArrayList<>();
@@ -153,6 +176,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         recetaList.addAll(listaFiltrada);
         notifyDataSetChanged();
     }
+
 
 
     public void filtrarPorIngredientesSeleccionados(List<String> ingredientesSeleccionados) {
@@ -199,6 +223,36 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         recetaOriginal.addAll(nuevasRecetas);
         notifyDataSetChanged();
     }
+
+    public void eliminarRecetaEnPosicion(int posicion) {
+        if (posicion >= 0 && posicion < recetaList.size()) {
+            recetaList.remove(posicion);
+            recetaOriginal.remove(posicion);
+            notifyItemRemoved(posicion);
+        }
+    }
+
+
+    public interface OnFavoritoCambiadoListener {
+        void onFavoritoQuitado(Receta receta, int posicion);
+    }
+
+    private OnFavoritoCambiadoListener favoritoCambiadoListener;
+
+    public void setOnFavoritoCambiadoListener(OnFavoritoCambiadoListener listener) {
+        this.favoritoCambiadoListener = listener;
+    }
+
+    private OnRecetaClickListener clickListener;
+
+    public void setOnRecetaClickListener(OnRecetaClickListener listener) {
+        this.clickListener = listener;
+    }
+
+    public interface OnRecetaClickListener {
+        void onRecetaClick(String recetaId);
+    }
+
 
     public static class RecetaViewHolder extends RecyclerView.ViewHolder {
 

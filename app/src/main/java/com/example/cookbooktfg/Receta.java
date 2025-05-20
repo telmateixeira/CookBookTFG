@@ -139,4 +139,8 @@ public class Receta {
     public void setFavorito(boolean favorito) {
         this.favorito = favorito;
     }
+
+    public void setNombresIngredientes(List<String> nombresIngredientes) {
+        this.nombresIngredientes = nombresIngredientes;
+    }
 }
