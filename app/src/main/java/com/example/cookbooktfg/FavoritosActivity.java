@@ -37,7 +37,7 @@ public class FavoritosActivity extends AppCompatActivity {
 
         // Configuración del RecyclerView
         recyclerViewRecetasFav.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new RecetaAdapter(recetaFavs, this);
+        adapter = new RecetaAdapter(recetaFavs, this, true);
         recyclerViewRecetasFav.setAdapter(adapter);
 
         adapter.setOnFavoritoCambiadoListener((receta, posicion) -> {
@@ -49,7 +49,12 @@ public class FavoritosActivity extends AppCompatActivity {
             }
         });
 
-        // Menú inferior
+        configurarBottomNavigation();
+        // Carga los datos reales
+        cargarRecetasFavoritas();
+    }
+
+    private void configurarBottomNavigation(){
         bottomNavigationViewFav.setSelectedItemId(R.id.nav_favoritos);
         bottomNavigationViewFav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -68,9 +73,6 @@ public class FavoritosActivity extends AppCompatActivity {
             }
             return false;
         });
-
-        // Carga los datos reales
-        cargarRecetasFavoritas();
     }
 
     private void cargarRecetasFavoritas() {

@@ -8,6 +8,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -68,36 +69,38 @@ public class RecetaRepositorio {
                 });
     }
 
-    public interface CallbackRecetas {
-        void onRecetasCargadas(List<Receta> recetas);
-    }
-
-    public static void obtenerRecetasPorIds(List<String> ids, CallbackRecetas callback) {
+    public static void obtenerRecetasPorIds(List<String> recetaIds, Consumer<List<Receta>> callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        List<Receta> recetas = new ArrayList<>();
 
-        if (ids.isEmpty()) {
-            callback.onRecetasCargadas(new ArrayList<>());
+        if (recetaIds.isEmpty()) {
+            callback.accept(recetas);
             return;
         }
 
-        db.collection("recetas")
-                .whereIn(FieldPath.documentId(), ids)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    List<Receta> recetas = new ArrayList<>();
-                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                        Receta receta = doc.toObject(Receta.class);
-                        if (receta != null) {
-                            receta.setId(doc.getId());
-                            recetas.add(receta);
+        AtomicInteger contador = new AtomicInteger(0);
+        for (String id : recetaIds) {
+            db.collection("recetas").document(id).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Receta receta = doc.toObject(Receta.class);
+                            if (receta != null) {
+                                receta.setId(doc.getId());  // Asegúrate de guardar el ID si lo necesitas
+                                recetas.add(receta);
+                            }
                         }
-                    }
-                    callback.onRecetasCargadas(recetas);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("RecetaRepositorio", "Error al cargar recetas por IDs", e);
-                    callback.onRecetasCargadas(new ArrayList<>());
-                });
+
+                        if (contador.incrementAndGet() == recetaIds.size()) {
+                            callback.accept(recetas);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("RecetaRepositorio", "Error al obtener receta con ID: " + id, e);
+                        if (contador.incrementAndGet() == recetaIds.size()) {
+                            callback.accept(recetas); // Devuelve lo que tengas aunque haya fallos
+                        }
+                    });
+        }
     }
 
 

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -116,7 +117,7 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             rvingredientes.addView(tvSinIngredientes);
         }
 
-        // Procesar instrucciones (si están como referencias)
+        // Procesar instrucciones
         List<DocumentReference> instruccionesRefs = (List<DocumentReference>) document.get("instrucciones");
         if (instruccionesRefs != null) {
             cargarInstrucciones(instruccionesRefs);
@@ -208,27 +209,36 @@ public class DetalleRecetaActivity extends AppCompatActivity {
 
     private void registrarVisitaEnHistorial(String recetaId) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
         if (userId == null || recetaId == null) return;
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference recetaRef = db.collection("recetas").document(recetaId);
+        CollectionReference historialRef = db.collection("usuarios").document(userId).collection("historial");
 
-        Map<String, Object> entradaHistorial = new HashMap<>();
-        DocumentReference recetaRef = FirebaseFirestore.getInstance()
-                .collection("recetas")
-                .document(recetaId);
-        entradaHistorial.put("recetaId", recetaRef);
+        historialRef.whereEqualTo("recetaId", recetaRef)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        // Ya existe: actualizar fechaVisita
+                        DocumentReference docExistente = queryDocumentSnapshots.getDocuments().get(0).getReference();
+                        docExistente.update("fechaVisita", com.google.firebase.firestore.FieldValue.serverTimestamp());
+                        Log.d("Historial", "Historial actualizado");
+                    } else {
+                        // No existe: crear nueva entrada
+                        Map<String, Object> entradaHistorial = new HashMap<>();
+                        entradaHistorial.put("recetaId", recetaRef);
+                        entradaHistorial.put("fechaVisita", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
-        entradaHistorial.put("fechaVisita", com.google.firebase.firestore.FieldValue.serverTimestamp());
-
-        db.collection("usuarios")
-                .document(userId)
-                .collection("historial")
-                .add(entradaHistorial)
-                .addOnSuccessListener(documentReference ->
-                        Log.d("Historial", "Visita registrada correctamente"))
+                        historialRef.add(entradaHistorial)
+                                .addOnSuccessListener(documentReference ->
+                                        Log.d("Historial", "Nueva entrada en historial creada"))
+                                .addOnFailureListener(e ->
+                                        Log.e("Historial", "Error al crear entrada en historial", e));
+                    }
+                })
                 .addOnFailureListener(e ->
-                        Log.e("Historial", "Error al registrar visita", e));
+                        Log.e("Historial", "Error al comprobar historial", e));
     }
 
 }

@@ -1,24 +1,57 @@
 package com.example.cookbooktfg;
 
+
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+// ... imports existentes ...
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 public class EditarPerfilActivity extends AppCompatActivity {
     private EditText editNombre;
     private ImageView imgPerfil;
-    private Button btnGuardar;
+    private Button btnGuardar, btnCambiarFoto;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    private StorageReference storageRef;
+
+    private Uri imagenUri;
+    private String imagentemp;
+    private static final int PERMISSION_REQUEST_CODE = 200;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 2;
+    private ActivityResultLauncher<Uri> takePictureLauncher;
+    private ActivityResultLauncher<Intent> pickImageLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +61,106 @@ public class EditarPerfilActivity extends AppCompatActivity {
         editNombre = findViewById(R.id.editNombre);
         imgPerfil = findViewById(R.id.imgPerfilEditar);
         btnGuardar = findViewById(R.id.btnGuardarCambios);
+        btnCambiarFoto = findViewById(R.id.btnCambiarFoto);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        storageRef = FirebaseStorage.getInstance().getReference("fotos_perfil");
 
+        inicializarLaunchers();
         cargarDatosUsuario();
 
+        btnCambiarFoto.setOnClickListener(v -> verificarYPedirPermisos());
         btnGuardar.setOnClickListener(v -> guardarCambios());
+        imgPerfil.setOnClickListener(v -> verificarYPedirPermisos());
+    }
+
+    private void inicializarLaunchers() {
+        takePictureLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicture(),
+                result -> {
+                    if (result && imagenUri != null) {
+                        Glide.with(this).load(imagenUri).into(imgPerfil);
+                    } else {
+                        Toast.makeText(this, "No se tomó la foto", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        imagenUri = result.getData().getData();
+                        Glide.with(this).load(imagenUri).into(imgPerfil);
+                    }
+                }
+        );
+    }
+
+    private void verificarYPedirPermisos() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    PERMISSION_REQUEST_CODE);
+        } else {
+            mostrarDialogoSeleccionImagen();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mostrarDialogoSeleccionImagen();
+            } else {
+                Toast.makeText(this, "Se necesitan los permisos para cambiar la foto", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void mostrarDialogoSeleccionImagen() {
+        new AlertDialog.Builder(this)
+                .setTitle("Seleccionar imagen de perfil")
+                .setItems(new String[]{"Tomar foto", "Elegir de galería"}, (dialog, which) -> {
+                    if (which == 0) {
+                        abrirCamara();
+                    } else {
+                        abrirGaleria();
+                    }
+                })
+                .show();
+    }
+
+    private void abrirCamara() {
+        try {
+            File photoFile = crearArchivoImagen();
+            if (photoFile != null) {
+                imagenUri = FileProvider.getUriForFile(this,
+                        "com.example.cookbooktfg.fileprovider",
+                        photoFile);
+                takePictureLauncher.launch(imagenUri);
+            }
+        } catch (IOException ex) {
+            Toast.makeText(this, "Error al crear el archivo: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("Camera", "Error al crear archivo", ex);
+        }
+    }
+
+    private void abrirGaleria() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.setType("image/*");
+        pickImageLauncher.launch(Intent.createChooser(intent, "Selecciona una imagen"));
+    }
+
+    private File crearArchivoImagen() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        imagentemp = image.getAbsolutePath();
+        return image;
     }
 
     private void cargarDatosUsuario() {
@@ -61,14 +187,57 @@ public class EditarPerfilActivity extends AppCompatActivity {
         }
 
         String uid = mAuth.getCurrentUser().getUid();
-        db.collection("usuarios").document(uid)
-                .update("nombre", nuevoNombre)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Perfil actualizado", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al actualizar", Toast.LENGTH_SHORT).show();
-                });
+
+        if (imagenUri != null) {
+            StorageReference fileRef = storageRef.child(uid + ".jpg");
+            fileRef.putFile(imagenUri)
+                    .continueWithTask(task -> {
+                        if (!task.isSuccessful()) {
+                            throw task.getException();
+                        }
+                        return fileRef.getDownloadUrl();
+                    })
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Uri downloadUri = task.getResult();
+                            actualizarPerfil(uid, nuevoNombre, downloadUri.toString());
+                        } else {
+                            Toast.makeText(this, "Error al subir la imagen", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } else {
+            actualizarPerfil(uid, nuevoNombre, null);
+        }
+    }
+
+    private void actualizarPerfil(String uid, String nombre, String fotoUrl) {
+        if (fotoUrl != null) {
+            db.collection("usuarios").document(uid)
+                    .update("nombre", nombre, "fotoPerfil", fotoUrl)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Perfil actualizado", Toast.LENGTH_SHORT).show();
+                        redirigirAAjustes();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error al actualizar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            db.collection("usuarios").document(uid)
+                    .update("nombre", nombre)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Nombre actualizado", Toast.LENGTH_SHORT).show();
+                        redirigirAAjustes();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error al actualizar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void redirigirAAjustes() {
+        Intent intent = new Intent(this, AjustesUserActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 }

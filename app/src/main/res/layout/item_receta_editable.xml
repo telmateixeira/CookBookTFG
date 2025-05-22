@@ -46,18 +46,6 @@
                 android:textSize="14sp" />
 
             <ImageButton
-                android:id="@+id/botonFavorito"
-                android:layout_width="50dp"
-                android:layout_height="46dp"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="5dp"
-                android:backgroundTint="@android:color/transparent"
-                android:contentDescription="Botón favorito"
-                android:scaleType="fitXY"
-                android:src="@drawable/favoritos_icono"
-                tools:ignore="TouchTargetSizeCheck" />
-
-            <ImageButton
                 android:id="@+id/botonEditaIcono"
                 android:layout_width="49dp"
                 android:layout_height="45dp"

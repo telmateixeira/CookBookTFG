@@ -23,7 +23,9 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder> {
 
@@ -32,11 +34,13 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
     private Context context;
     private FirebaseFirestore db;
     private List<String> ingredientesFiltro = new ArrayList<>();
+    private boolean mostrarFavs = true;
 
-    public RecetaAdapter(List<Receta> recetaList, Context context) {
+    public RecetaAdapter(List<Receta> recetaList, Context context, boolean mostrarFavs) {
         this.recetaList = new ArrayList<>(recetaList);
         this.recetaOriginal = new ArrayList<>(recetaList);
         this.context = context;
+        this.mostrarFavs = mostrarFavs;
     }
 
     @NonNull
@@ -88,37 +92,46 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
             holder.autor.setText("Anónimo");
         }
 
-
-        if (receta.isFavorito()) {
-            holder.botonFavorito.setImageResource(R.drawable.favoritos_icono_naranja);
-        } else {
-            holder.botonFavorito.setImageResource(R.drawable.favoritos_icono);
-        }
+        // Configurar el botón de favorito
+        holder.botonFavorito.setImageResource(
+                receta.isFavorito() ? R.drawable.favoritos_icono_naranja : R.drawable.favoritos_icono
+        );
 
         holder.botonFavorito.setOnClickListener(v -> {
             boolean nuevoEstado = !receta.isFavorito();
             receta.setFavorito(nuevoEstado);
-            notifyItemChanged(holder.getAdapterPosition());
+            notifyItemChanged(position);
 
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            DocumentReference userRef = FirebaseFirestore.getInstance()
-                    .collection("usuarios")
-                    .document(user.getUid());
-            DocumentReference recetaRef = FirebaseFirestore.getInstance()
-                    .collection("recetas")
-                    .document(receta.getId());
+            if (user != null) {
+                DocumentReference recetaRef = db.collection("recetas").document(receta.getId());
 
-            if (nuevoEstado) {
-                userRef.update("favoritos", FieldValue.arrayUnion(recetaRef))
-                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Añadido a favoritos"));
-            } else {
-                userRef.update("favoritos", FieldValue.arrayRemove(recetaRef))
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d("Firestore", "Eliminado de favoritos");
-                            if (favoritoCambiadoListener != null) {
-                                favoritoCambiadoListener.onFavoritoQuitado(receta, holder.getAdapterPosition());
-                            }
-                        });
+                if (nuevoEstado) {
+                    // Añadir a favoritos (array en documento principal)
+                    db.collection("usuarios")
+                            .document(user.getUid())
+                            .update("favoritos", FieldValue.arrayUnion(recetaRef))
+                            .addOnSuccessListener(aVoid -> Log.d("Favoritos", "Añadido a favoritos"))
+                            .addOnFailureListener(e -> {
+                                receta.setFavorito(false);
+                                notifyItemChanged(position);
+                            });
+                } else {
+                    // Eliminar de favoritos
+                    db.collection("usuarios")
+                            .document(user.getUid())
+                            .update("favoritos", FieldValue.arrayRemove(recetaRef))
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("Favoritos", "Eliminado de favoritos");
+                                if (favoritoCambiadoListener != null) {
+                                    favoritoCambiadoListener.onFavoritoQuitado(receta, position);
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                receta.setFavorito(true);
+                                notifyItemChanged(position);
+                            });
+                }
             }
         });
 

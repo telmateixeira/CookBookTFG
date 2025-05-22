@@ -49,7 +49,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         bottomNavigationView.setSelectedItemId(R.id.nav_inicio);
 
         recetaList = new ArrayList<>();
-        adapter = new RecetaAdapter(recetaList, this);
+        adapter = new RecetaAdapter(recetaList, this,true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 

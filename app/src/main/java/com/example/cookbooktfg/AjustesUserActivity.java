@@ -61,8 +61,9 @@ public class AjustesUserActivity extends AppCompatActivity {
         cargarRecetasUsuario();
 
         btnEditarPerfil.setOnClickListener(v -> {
-            Intent intent = new Intent(this, EditarPerfilActivity.class);
-            startActivity(intent);
+                startActivity(new Intent(AjustesUserActivity.this, EditarPerfilActivity.class));
+                finish();
+
         });
     }
 
@@ -167,16 +168,20 @@ public class AjustesUserActivity extends AppCompatActivity {
             if (id == R.id.nav_inicio) {
                 startActivity(new Intent(this, MenuPrincipalActivity.class));
                 finish();
+                return true;
             } else if (id == R.id.nav_favoritos) {
                 startActivity(new Intent(this, FavoritosActivity.class));
                 finish();
+                return true;
             } else if (id == R.id.nav_historial) {
                 startActivity(new Intent(this, HistorialActivity.class));
                 finish();
+                return true;
             } else if (id == R.id.nav_ajustes) {
+                // No hacer nada porque ya estamos en Ajustes
                 return true;
             }
-            return true;
+            return false;
         });
     }
 }

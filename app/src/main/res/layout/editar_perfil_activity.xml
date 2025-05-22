@@ -4,26 +4,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="@color/white">
 
     <ImageView
         android:id="@+id/imgPerfilEditar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_gravity="center"
+        android:layout_marginTop="50dp"
         android:src="@drawable/usuario_icono" />
+    <Button
+        android:id="@+id/btnCambiarFoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cambiar Foto"
+        android:layout_gravity="center"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/teal"
+        android:layout_below="@id/imgPerfilEditar"
+        android:layout_centerHorizontal="true"/>
 
     <EditText
         android:id="@+id/editNombre"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Nuevo nombre"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="30dp"/>
 
     <Button
         android:id="@+id/btnGuardarCambios"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Guardar"
+        android:backgroundTint="@color/teal"
+        android:fontFamily="@font/nunito_bold"
         android:layout_marginTop="24dp"/>
 </LinearLayout>

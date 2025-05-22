@@ -78,7 +78,14 @@
             android:name=".HistorialActivity"
             android:exported="true">
         </activity>
-
+        <activity
+            android:name=".EditarPerfilActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".EditarRecetaActivity"
+            android:exported="true">
+        </activity>
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
