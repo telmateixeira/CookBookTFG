@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CookBookTFG</string>
+    <string name="app_name">CookBook</string>
     <string-array name="dificultad_opciones">
         <item>Seleccione dificultad</item>
         <item>Fácil</item>

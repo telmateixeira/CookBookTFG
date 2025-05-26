@@ -99,15 +99,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textViewMisRecetas" />
 
-
+    </LinearLayout>
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationViewUser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:background="@color/white"
         app:itemIconTint="@color/color_barra_selector"
         app:itemTextColor="@color/color_barra_selector"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/menu_navegacion" />
-    </LinearLayout>
 </RelativeLayout>

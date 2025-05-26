@@ -33,6 +33,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
     private List<Receta> recetaList;
     private EditText etBuscar;
     private ImageButton btnFiltro;
+    private List<String> filtrosSeleccionados = new ArrayList<>();
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton fabCrearReceta;
     private ActivityResultLauncher<Intent> crearRecetaLauncher;
@@ -107,23 +108,22 @@ public class MenuPrincipalActivity extends AppCompatActivity {
 
         btnFiltro.setOnClickListener(v -> {
             obtenerIngredientesDisponibles(ingredientes -> {
-                // Ordenar ingredientes por tipo para mejor visualización
                 Collections.sort(ingredientes, (i1, i2) -> {
                     int tipoCompare = i1.getTipo().compareTo(i2.getTipo());
                     if (tipoCompare != 0) return tipoCompare;
                     return i1.getNombre().compareTo(i2.getNombre());
                 });
 
-                FiltroIngredientes.mostrar(this, ingredientes, ingredientesSeleccionados -> {
-                    if (ingredientesSeleccionados.isEmpty()) {
-                        Toast.makeText(this, "Filtro limpiado", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, ingredientesSeleccionados.size() + " ingredientes seleccionados", Toast.LENGTH_SHORT).show();
-                    }
-                    adapter.filtrarPorIngredientesSeleccionados(ingredientesSeleccionados);
+                FiltroIngredientes.mostrar(this, ingredientes, new ArrayList<>(filtrosSeleccionados), nuevosSeleccionados -> {
+                    filtrosSeleccionados.clear();
+                    filtrosSeleccionados.addAll(nuevosSeleccionados);
+                    adapter.filtrarPorIngredientesSeleccionados(filtrosSeleccionados);
                 });
+
             });
         });
+
+
     }
 
     private void configurarBottomNavigation() {

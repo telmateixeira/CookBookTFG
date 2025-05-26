@@ -1,5 +1,6 @@
 package com.example.cookbooktfg;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -160,13 +161,7 @@ public class CrearRecetaActivity extends AppCompatActivity {
         btnAgregarPaso = findViewById(R.id.btnAgregarPaso);
         rvInstrucciones = findViewById(R.id.rvInstrucciones);
 
-        instruccionesAdapter = new InstruccionesAdapter(listaPasos, (from, to) -> {
-            Collections.swap(listaPasos, from, to);
-            instruccionesAdapter.notifyItemMoved(from, to);
-        });
-
-        rvInstrucciones.setLayoutManager(new LinearLayoutManager(this));
-        rvInstrucciones.setAdapter(instruccionesAdapter);
+        configurarRecycler();
 
         btnAgregarPaso.setOnClickListener(v -> {
             String paso = etPaso.getText().toString().trim();
@@ -217,6 +212,58 @@ public class CrearRecetaActivity extends AppCompatActivity {
         });
 
         btnSeleccionarImagenes.setOnClickListener(v -> abrirGaleria());
+    }
+
+    private void configurarRecycler() {
+        instruccionesAdapter = new InstruccionesAdapter(listaPasos,
+                (fromPosition, toPosition) -> {
+                    Collections.swap(listaPasos, fromPosition, toPosition);
+                    instruccionesAdapter.notifyItemMoved(fromPosition, toPosition);
+                },
+                position -> {
+                    String pasoActual = listaPasos.get(position);
+                    EditText editText = new EditText(CrearRecetaActivity.this);
+                    editText.setText(pasoActual);
+
+                    new AlertDialog.Builder(CrearRecetaActivity.this)
+                            .setTitle("Editar paso")
+                            .setView(editText)
+                            .setPositiveButton("Guardar", (dialog, which) -> {
+                                String nuevoPaso = editText.getText().toString().trim();
+                                if (!nuevoPaso.isEmpty()) {
+                                    listaPasos.set(position, nuevoPaso);
+                                    instruccionesAdapter.notifyItemChanged(position);
+                                }
+                            })
+                            .setNegativeButton("Cancelar", null)
+                            .show();
+                });
+
+        rvInstrucciones.setLayoutManager(new LinearLayoutManager(this));
+        rvInstrucciones.setAdapter(instruccionesAdapter);
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+                Collections.swap(listaPasos, fromPos, toPos);
+                instruccionesAdapter.notifyItemMoved(fromPos, toPos);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                listaPasos.remove(position);
+                instruccionesAdapter.notifyItemRemoved(position);
+            }
+        }).attachToRecyclerView(rvInstrucciones);
     }
 
     // Metodo auxiliar para capitalizar texto

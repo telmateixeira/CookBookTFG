@@ -9,19 +9,24 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
-
 public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdapter.ViewHolder> {
 
     public interface OnMoveListener {
         void onItemMove(int fromPosition, int toPosition);
     }
 
+    public interface OnEditListener {
+        void onEditClick(int position);
+    }
+
     private List<String> pasos;
     final OnMoveListener moveListener;
+    private final OnEditListener editListener;
 
-    public InstruccionesAdapter(List<String> pasos, OnMoveListener moveListener) {
+    public InstruccionesAdapter(List<String> pasos, OnMoveListener moveListener, OnEditListener editListener) {
         this.pasos = pasos;
         this.moveListener = moveListener;
+        this.editListener = editListener;
     }
 
     @NonNull
@@ -34,6 +39,11 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.text.setText((position + 1) + ". " + pasos.get(position));
+        holder.itemView.setOnClickListener(v -> {
+            if (editListener != null) {
+                editListener.onEditClick(holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
@@ -49,5 +59,3 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
         }
     }
 }
-
-
