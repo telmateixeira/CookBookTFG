@@ -9,10 +9,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.InputType;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,7 +25,11 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -39,7 +45,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 public class EditarPerfilActivity extends AppCompatActivity {
     private EditText editNombre;
     private ImageView imgPerfil;
-    private Button btnGuardar, btnCambiarFoto;
+    private Button btnGuardar, btnCambiarFoto, btnCambiarContrasena;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -62,6 +68,7 @@ public class EditarPerfilActivity extends AppCompatActivity {
         imgPerfil = findViewById(R.id.imgPerfilEditar);
         btnGuardar = findViewById(R.id.btnGuardarCambios);
         btnCambiarFoto = findViewById(R.id.btnCambiarFoto);
+        btnCambiarContrasena = findViewById(R.id.btnCambiarContrasena);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -72,6 +79,7 @@ public class EditarPerfilActivity extends AppCompatActivity {
 
         btnCambiarFoto.setOnClickListener(v -> verificarYPedirPermisos());
         btnGuardar.setOnClickListener(v -> guardarCambios());
+        btnCambiarContrasena.setOnClickListener(v -> mostrarDialogoCambioContrasena());
         imgPerfil.setOnClickListener(v -> verificarYPedirPermisos());
     }
 
@@ -240,4 +248,95 @@ public class EditarPerfilActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    private void mostrarDialogoCambioContrasena() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Cambiar Contraseña");
+
+        // Configurar el layout del diálogo
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(32, 16, 32, 16);
+
+        // Campo para contraseña actual
+        TextInputEditText etContrasenaActual = new TextInputEditText(this);
+        etContrasenaActual.setHint("Contraseña actual");
+        etContrasenaActual.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(etContrasenaActual);
+
+        // Campo para nueva contraseña
+        TextInputEditText etNuevaContrasena = new TextInputEditText(this);
+        etNuevaContrasena.setHint("Nueva contraseña");
+        etNuevaContrasena.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(etNuevaContrasena);
+
+        // Campo para confirmar nueva contraseña
+        TextInputEditText etConfirmarContrasena = new TextInputEditText(this);
+        etConfirmarContrasena.setHint("Confirmar nueva contraseña");
+        etConfirmarContrasena.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(etConfirmarContrasena);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Cambiar", (dialog, which) -> {
+            String contrasenaActual = etContrasenaActual.getText().toString().trim();
+            String nuevaContrasena = etNuevaContrasena.getText().toString().trim();
+            String confirmarContrasena = etConfirmarContrasena.getText().toString().trim();
+
+            validarYCambiarContrasena(contrasenaActual, nuevaContrasena, confirmarContrasena);
+        });
+
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void validarYCambiarContrasena(String contrasenaActual, String nuevaContrasena, String confirmarContrasena) {
+        // Validaciones básicas
+        if (contrasenaActual.isEmpty() || nuevaContrasena.isEmpty() || confirmarContrasena.isEmpty()) {
+            Toast.makeText(this, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!nuevaContrasena.equals(confirmarContrasena)) {
+            Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (nuevaContrasena.length() < 6) {
+            Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && user.getEmail() != null) {
+            // Primero reautenticar al usuario
+            AuthCredential credential = EmailAuthProvider
+                    .getCredential(user.getEmail(), contrasenaActual);
+
+            user.reauthenticate(credential)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            // Reautenticación exitosa, proceder a cambiar contraseña
+                            user.updatePassword(nuevaContrasena)
+                                    .addOnCompleteListener(updateTask -> {
+                                        if (updateTask.isSuccessful()) {
+                                            Toast.makeText(EditarPerfilActivity.this,
+                                                    "Contraseña cambiada con éxito",
+                                                    Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(EditarPerfilActivity.this,
+                                                    "Error al cambiar contraseña: " +
+                                                            updateTask.getException().getMessage(),
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(EditarPerfilActivity.this,
+                                    "Contraseña actual incorrecta",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
 }

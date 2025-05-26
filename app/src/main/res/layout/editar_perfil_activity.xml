@@ -31,6 +31,15 @@
         android:layout_height="wrap_content"
         android:hint="Nuevo nombre"
         android:layout_marginTop="30dp"/>
+    <Button
+        android:id="@+id/btnCambiarContrasena"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cambiar Contraseña"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:textColor="@color/teal"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
     <Button
         android:id="@+id/btnGuardarCambios"

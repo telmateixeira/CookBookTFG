@@ -67,18 +67,27 @@
         android:textColor="@color/teal"
         android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etEmail"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="60px"
-        android:layout_marginRight="70px"
-        android:background="@color/white"
-        android:fontFamily="@font/nunito"
-        android:hint="Correo Electrónico"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="12dp"
+        app:boxStrokeColor="@color/teal"
         android:inputType="textEmailAddress"
-        android:padding="12dp"
-        android:textColorHint="#999999" />
+        app:boxCornerRadiusTopStart="20dp"
+        app:boxCornerRadiusTopEnd="20dp"
+        app:boxCornerRadiusBottomStart="20dp"
+        app:boxCornerRadiusBottomEnd="20dp"
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+
 
     <TextView
         android:id="@+id/txtContraseña"
@@ -91,18 +100,25 @@
         android:textColor="@color/teal"
         android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etContraseña"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="60px"
-        android:layout_marginRight="70px"
-        android:background="@color/white"
-        android:fontFamily="@font/nunito"
-        android:hint="Contraseña"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="12dp"
+        app:boxStrokeColor="@color/teal"
         android:inputType="textPassword"
-        android:padding="12dp"
-        android:textColorHint="#999999" />
+        app:boxCornerRadiusTopStart="20dp"
+        app:boxCornerRadiusTopEnd="20dp"
+        app:boxCornerRadiusBottomStart="20dp"
+        app:boxCornerRadiusBottomEnd="20dp"
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etContraseña"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Fondo degradado con botón -->
         <FrameLayout

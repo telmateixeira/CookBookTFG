@@ -3,6 +3,7 @@ package com.example.cookbooktfg;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
 public class LoginActivity extends AppCompatActivity{
 
@@ -72,6 +75,7 @@ public class LoginActivity extends AppCompatActivity{
         // Comprobamos en Firebase
         auth.signInWithEmailAndPassword(email, contraseña)
                 .addOnCompleteListener(this, task -> {
+                    // progressDialog.dismiss();
                     if (task.isSuccessful()) {
                         // Inicio de sesión correcto
                         Toast.makeText(LoginActivity.this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
@@ -79,8 +83,19 @@ public class LoginActivity extends AppCompatActivity{
                         startActivity(intent);
                         finish();
                     } else {
-                        // Fallo
-                        Toast.makeText(LoginActivity.this, "Error en el inicio de sesión", Toast.LENGTH_SHORT).show();
+                        // Manejo específico de errores
+                        String errorMessage = "Error en el inicio de sesión";
+                        try {
+                            throw task.getException();
+                        } catch (FirebaseAuthInvalidUserException e) {
+                            errorMessage = "Usuario no registrado o correo inválido";
+                        } catch (FirebaseAuthInvalidCredentialsException e) {
+                            errorMessage = "Contraseña incorrecta";
+                        } catch (Exception e) {
+                            errorMessage = "Error: " + e.getMessage();
+                        }
+                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        Log.e("Login", errorMessage);
                     }
                 });
     }

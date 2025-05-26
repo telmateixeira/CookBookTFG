@@ -61,7 +61,7 @@ public class AjustesUserActivity extends AppCompatActivity {
         cargarRecetasUsuario();
 
         btnEditarPerfil.setOnClickListener(v -> {
-            startActivity(new Intent(this, EditarRecetaActivity.class));
+            startActivity(new Intent(this, EditarPerfilActivity.class));
             finish();
         });
     }
