@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
@@ -85,6 +86,29 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         obtenerRecetasDeFirestore();
         configurarBuscador();
         configurarBottomNavigation();
+
+        String usuarioActualId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        RecetasGenerator generator = new RecetasGenerator(usuarioActualId);
+        generator.generarRecetasSiEsNecesario(5, new RecetasGenerator.RecetasCallback() {
+            @Override
+            public void onSuccess(int recetasGeneradas) {
+                Log.d("MainActivity", "Recetas generadas: " + recetasGeneradas);
+                // Aquí puedes actualizar UI o cargar datos
+            }
+
+            @Override
+            public void onRecetasExisten() {
+                Log.d("MainActivity", "Las recetas ya existen en la base de datos");
+                // Cargar recetas desde Firestore sin generar
+            }
+
+            @Override
+            public void onError(String mensaje) {
+                Log.e("MainActivity", "Error al generar recetas: " + mensaje);
+                // Mostrar error en UI o retry
+            }
+        });
+
     }
 
     private void configurarBuscador() {

@@ -74,7 +74,6 @@
         android:layout_marginEnd="20dp"
         android:layout_marginTop="12dp"
         app:boxStrokeColor="@color/teal"
-        android:inputType="textEmailAddress"
         app:boxCornerRadiusTopStart="20dp"
         app:boxCornerRadiusTopEnd="20dp"
         app:boxCornerRadiusBottomStart="20dp"
@@ -84,7 +83,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"/>
     </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -107,7 +107,6 @@
         android:layout_marginEnd="20dp"
         android:layout_marginTop="12dp"
         app:boxStrokeColor="@color/teal"
-        android:inputType="textPassword"
         app:boxCornerRadiusTopStart="20dp"
         app:boxCornerRadiusTopEnd="20dp"
         app:boxCornerRadiusBottomStart="20dp"
@@ -117,7 +116,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etContraseña"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Fondo degradado con botón -->

@@ -47,10 +47,11 @@
 
         <ImageButton
             android:id="@+id/botonFavorito"
-            android:layout_width="50dp"
-            android:layout_height="46dp"
+            android:layout_width="46dp"
+            android:layout_height="42dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="60dp"
             android:backgroundTint="@android:color/transparent"
             android:contentDescription="Botón favorito"
             android:scaleType="fitXY"

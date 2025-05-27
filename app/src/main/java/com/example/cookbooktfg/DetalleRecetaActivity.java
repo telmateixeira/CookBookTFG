@@ -187,7 +187,7 @@ public class DetalleRecetaActivity extends AppCompatActivity {
     }
 
     private void cargarInstrucciones(List<DocumentReference> instruccionesRefs) {
-        StringBuilder instruccionesText = new StringBuilder();
+        List<InstruccionModelo> instruccionesList = new ArrayList<>();
         AtomicInteger contador = new AtomicInteger(0);
 
         for (DocumentReference ref : instruccionesRefs) {
@@ -195,17 +195,30 @@ public class DetalleRecetaActivity extends AppCompatActivity {
                 if (documentSnapshot.exists()) {
                     int orden = documentSnapshot.getLong("orden").intValue();
                     String paso = documentSnapshot.getString("paso");
-
-                    instruccionesText.append(orden).append(". ").append(paso).append("\n\n");
+                    instruccionesList.add(new InstruccionModelo(orden, paso));
                 }
 
-                // Verificar si todas las instrucciones se cargaron
+                // Cuando todas las instrucciones hayan sido cargadas
                 if (contador.incrementAndGet() == instruccionesRefs.size()) {
+                    // Ordenar la lista por orden ascendente
+                    instruccionesList.sort((i1, i2) -> Integer.compare(i1.getOrden(), i2.getOrden()));
+
+                    // Construir texto ordenado
+                    StringBuilder instruccionesText = new StringBuilder();
+                    for (InstruccionModelo instruccion : instruccionesList) {
+                        instruccionesText.append(instruccion.getOrden())
+                                .append(". ")
+                                .append(instruccion.getPaso())
+                                .append("\n\n");
+                    }
+
+                    // Mostrar en el TextView
                     instrucciones.setText(instruccionesText.toString());
                 }
             });
         }
     }
+
 
     private void registrarVisitaEnHistorial(String recetaId) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();

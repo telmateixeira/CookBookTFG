@@ -21,6 +21,9 @@ public class Receta {
     private transient List<String> nombresIngredientes; // transient para que no se guarde en Firestore
     private List<DocumentReference> instrucciones;
     private boolean favorito;
+    private String fuente; // "spoonacular" o "usuario"
+    private int idSpoonacular; // ID original de Spoonacular
+
 
     public Receta() {
         // Constructor vacío Firestore
@@ -142,5 +145,59 @@ public class Receta {
 
     public void setNombresIngredientes(List<String> nombresIngredientes) {
         this.nombresIngredientes = nombresIngredientes;
+    }
+
+    public String getFuente() {
+        return fuente;
+    }
+
+    public void setFuente(String fuente) {
+        this.fuente = fuente;
+    }
+
+    public int getIdSpoonacular() {
+        return idSpoonacular;
+    }
+
+    public void setIdSpoonacular(int idSpoonacular) {
+        this.idSpoonacular = idSpoonacular;
+    }
+    // Método estático para convertir SpoonacularRecipe a Receta
+    public static Receta fromSpoonacular(SpoonacularReceta.SpoonacularRecipe spoonRecipe, String creadorId) {
+        Receta receta = new Receta();
+
+        receta.setIdSpoonacular(spoonRecipe.getId());
+        receta.setFuente("spoonacular");
+        receta.setNombre(spoonRecipe.getTitle());
+        receta.setDescripcion(spoonRecipe.getSummary() != null ? spoonRecipe.getSummary().replaceAll("<[^>]*>", "") : "");
+        receta.setCreadorId(creadorId);
+        receta.setDuracion(String.valueOf(spoonRecipe.getReadyInMinutes()));
+        receta.setDificultad(calcularDificultad(receta.getDuracion()));
+        receta.setFavorito(false);
+        receta.setFechaCreacion(new Date());
+
+        List<String> imagenes = new ArrayList<>();
+        if (spoonRecipe.getImage() != null) {
+            imagenes.add(spoonRecipe.getImage());
+        }
+        receta.setImagenes(imagenes);
+
+        // Ingredientes e instrucciones se asignan luego porque requieren acceso a Firestore
+        receta.setIngredientes(new ArrayList<>());
+        receta.setInstrucciones(new ArrayList<>());
+
+        return receta;
+    }
+
+    // Método para calcular dificultad según duración en minutos
+    public static String calcularDificultad(String duracion) {
+        try {
+            int minutos = Integer.parseInt(duracion.replaceAll("[^0-9]", ""));
+            if (minutos < 30) return "Fácil";
+            if (minutos < 60) return "Media";
+            return "Difícil";
+        } catch (NumberFormatException e) {
+            return "Media";
+        }
     }
 }

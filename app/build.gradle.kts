@@ -14,6 +14,12 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "SPOONACULAR_API_KEY", "\"aaa2dabfe8fe4f6c8bfa7f098f745fc9\"")
+
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -58,5 +64,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
 }

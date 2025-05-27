@@ -6,6 +6,9 @@ public class IngredienteModelo {
     private String nombre;
     private String cantidad;
 
+    // Constructor vacío para Firestore
+    public IngredienteModelo() {}
+
     // Constructor
     public IngredienteModelo(String tipo, String nombre, String cantidad) {
         this.tipo = tipo;
