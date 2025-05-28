@@ -18,15 +18,24 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-
+/**
+ * Clase que representa la actividad de inicio de sesión de la aplicación Cookbook.
+ * Permite a los usuarios autenticarse mediante correo electrónico y contraseña usando Firebase Authentication.
+ *
+ * Autor: Telma Teixeira
+ * Proyecto: CookbookTFG
+ */
 public class LoginActivity extends AppCompatActivity{
 
     private EditText etEmail, etContraseña;
     private Button btnLogin;
     private TextView tvRegister;
     private ImageButton btnVolver;
-    private FirebaseAuth auth; // Para autenticar usuarios
+    private FirebaseAuth auth;
 
+    /**
+     * Metodo llamado al crear la actividad. Inicializa los componentes de la interfaz y la instancia de FirebaseAuth.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +67,10 @@ public class LoginActivity extends AppCompatActivity{
         btnLogin.setOnClickListener(v -> iniciarSesion());
 
     }
-
+    /**
+     * Metodo que valida los campos de email y contraseña e intenta iniciar sesión con Firebase Authentication.
+     * En caso de éxito, redirige al usuario al menú principal. Si falla, muestra un mensaje de error adecuado.
+     */
     private void iniciarSesion() {
         String email = etEmail.getText().toString().trim();
         String contraseña = etContraseña.getText().toString().trim();
@@ -101,6 +113,10 @@ public class LoginActivity extends AppCompatActivity{
                 });
     }
 
+    /**
+     * Maneja el comportamiento del botón de navegación "Atrás" de la barra superior si está presente.
+     * Redirige a la pantalla de bienvenida.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

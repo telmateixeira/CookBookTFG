@@ -24,7 +24,14 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
+/**
+ *  Esta actividad permite a los usuarios editar una receta ya existente en Firestore,
+ *  incluyendo el nombre, descripción, duración, dificultad, ingredientes, pasos de preparación
+ *  e imágenes asociadas.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class EditarRecetaActivity extends AppCompatActivity {
 
     private EditText etNombreReceta, etDescripcion, etDuracion, etPaso, etCantidad;
@@ -51,6 +58,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
     private String recetaId;
     private Receta receta;
 
+    /**
+     * Metodo llamado al crear la actividad. Inicializa vistas, configura eventos y carga datos.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,6 +150,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(rvInstrucciones);
     }
 
+    /**
+     * Inicializa los componentes de la interfaz de usuario y adapta la dificultad.
+     */
     private void inicializarVistas() {
         etNombreReceta = findViewById(R.id.etNombreReceta);
         etDescripcion = findViewById(R.id.etDescripcion);
@@ -164,7 +177,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
                 new String[]{"Fácil", "Media", "Difícil"}
         ));
     }
-
+    /**
+     * Carga los datos de la receta desde Firestore y actualiza los campos de la UI.
+     */
     private void cargarRecetaDesdeFirestore() {
         db.collection("recetas").document(recetaId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -175,7 +190,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
                     }
                 });
     }
-
+    /**
+     * Rellena los campos de la UI con la información de la receta cargada.
+     */
     private void rellenarCamposConReceta() {
         etNombreReceta.setText(receta.getNombre());
         etDescripcion.setText(receta.getDescripcion());
@@ -238,7 +255,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
             }
         }
     }
-
+    /**
+     * Agrega un nuevo ingrediente o reutiliza uno existente según el input del usuario.
+     */
     private void agregarIngrediente() {
         String tipo = autoTipoIng.getText().toString().trim();
         String nombre = autoNombreIng.getText().toString().trim();
@@ -273,7 +292,11 @@ public class EditarRecetaActivity extends AppCompatActivity {
         autoNombreIng.setText("");
         etCantidad.setText("");
     }
-
+    /**
+     * Crea y añade un chip visual en el ChipGroup para un ingrediente dado.
+     *
+     * @param ingrediente El ingrediente a mostrar.
+     */
     private void agregarChipIngrediente(IngredienteModelo ingrediente) {
         Chip chip = new Chip(this);
         chip.setText(ingrediente.getFormatoChip());
@@ -282,7 +305,10 @@ public class EditarRecetaActivity extends AppCompatActivity {
         chip.setOnCloseIconClickListener(v -> chipGroupIngredientes.removeView(chip));
         chipGroupIngredientes.addView(chip);
     }
-
+    /**
+     * Carga sugerencias de ingredientes ya existentes desde Firestore
+     * para autocompletado.
+     */
     private void cargarSugerenciasIngredientes() {
         db.collection("ingredientes").get().addOnSuccessListener(querySnapshot -> {
             sugerenciasIngredientes.clear();
@@ -301,14 +327,18 @@ public class EditarRecetaActivity extends AppCompatActivity {
             autoTipoIng.setAdapter(adapter);
         });
     }
-
+    /**
+     * Abre la galería para que el usuario seleccione imágenes desde el dispositivo.
+     */
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Selecciona imágenes"), 101);
     }
-
+    /**
+     * Procesa el resultado de la selección de imágenes desde la galería.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -327,7 +357,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
             }
         }
     }
-
+    /**
+     * Permite ajustar la imagen para verla mas pequeña en la actividad
+     */
     private void mostrarMiniatura(Uri uri) {
         ImageView iv = new ImageView(this);
         iv.setLayoutParams(new LinearLayout.LayoutParams(250, 250));
@@ -335,7 +367,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
         iv.setImageURI(uri);
         contenedorImagenes.addView(iv);
     }
-
+    /**
+     * Guarda los cambios realizados en la receta en Firestore y Firebase Storage.
+     */
     private void guardarCambios() {
         ProgressDialog progreso = new ProgressDialog(this);
         progreso.setMessage("Guardando cambios...");
@@ -370,7 +404,11 @@ public class EditarRecetaActivity extends AppCompatActivity {
             }
         }
     }
-
+    /**
+     * Elimina de Firebase Storage todas las imágenes cuya URL está listada en `urlsImagenesEliminadas`.
+     *
+     * @param onComplete Acción a ejecutar una vez que todas las imágenes han sido eliminadas de Storage.
+     */
     private void eliminarImagenesDeStorage(Runnable onComplete) {
         if (urlsImagenesEliminadas.isEmpty()) {
             onComplete.run();
@@ -389,7 +427,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
             });
         }
     }
-
+    /**
+     * Configura el RecyclerView para mostrar la lista de instrucciones.
+     */
     private void configurarRecycler() {
         instruccionesAdapter = new InstruccionesAdapter(listaPasos,
                 (fromPosition, toPosition) -> {
@@ -442,6 +482,12 @@ public class EditarRecetaActivity extends AppCompatActivity {
         }).attachToRecyclerView(rvInstrucciones);
     }
 
+    /**
+     * Actualiza una receta existente en Firestore con nuevos datos proporcionados por el usuario.
+     *
+     * @param imagenes Lista de URLs de imágenes actualizadas de la receta.
+     * @param progreso Diálogo de progreso mostrado mientras se realiza la actualización.
+     */
     private void actualizarRecetaEnFirestore(List<String> imagenes, ProgressDialog progreso) {
         String nombre = etNombreReceta.getText().toString().trim();
         String descripcion = etDescripcion.getText().toString().trim();

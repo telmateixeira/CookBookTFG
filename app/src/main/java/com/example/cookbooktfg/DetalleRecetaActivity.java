@@ -24,6 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * DetalleRecetaActivity muestra la información completa de una receta seleccionada,
+ * incluyendo su nombre, autor, dificultad, duración, descripción, ingredientes,
+ * instrucciones e imagen. También registra la visita de la receta en el historial
+ * del usuario autenticado.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class DetalleRecetaActivity extends AppCompatActivity {
 
     private TextView titulo, autor, dificultad, duracion, descripcion, instrucciones;
@@ -32,6 +41,10 @@ public class DetalleRecetaActivity extends AppCompatActivity {
     private IngredientesAdapter adapter;
     private RecyclerView rvingredientes;
 
+    /**
+     * Metodo llamado al crear la actividad. Inicializa la interfaz, obtiene el ID
+     * de la receta desde el Intent y comienza la carga de datos.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +71,11 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Carga los datos de la receta desde Firestore.
+     *
+     * @param recetaId ID del documento de receta.
+     */
     private void cargarReceta(String recetaId) {
         FirebaseFirestore.getInstance()
                 .collection("recetas")
@@ -78,7 +96,11 @@ public class DetalleRecetaActivity extends AppCompatActivity {
                     finish();
                 });
     }
-
+    /**
+     * Muestra los datos de la receta en la interfaz.
+     *
+     * @param document Snapshot del documento de la receta.
+     */
     private void mostrarDatosReceta(DocumentSnapshot document) {
         // Datos básicos
         titulo.setText(document.getString("nombre"));
@@ -86,10 +108,9 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         dificultad.setText(document.getString("dificultad"));
         duracion.setText(document.getString("duracion") + " min");
 
-        // Cargar imagen con Glide
+        // Cargar imagenes con Glide
         List<String> imagenesUrls = (List<String>) document.get("imagenes");
         if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
-            // Cargar la primera imagen (o implementar un ViewPager para varias)
             Glide.with(this)
                     .load(imagenesUrls.get(0))
                     .placeholder(R.drawable.placeholder)
@@ -97,8 +118,6 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         } else {
             imagen.setImageResource(R.drawable.placeholder);
         }
-
-
         // Cargar autor
         String creadorId = document.getString("creadorId");
         if (creadorId != null) {
@@ -129,7 +148,11 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             }
         }
     }
-
+    /**
+     * Carga y muestra el nombre del autor a partir del ID del usuario.
+     *
+     * @param userId ID del usuario creador de la receta.
+     */
     private void cargarNombreUsuario(String userId) {
         FirebaseFirestore.getInstance()
                 .collection("usuarios")
@@ -141,7 +164,11 @@ public class DetalleRecetaActivity extends AppCompatActivity {
                     }
                 });
     }
-
+    /**
+     * Carga y muestra la lista de ingredientes desde sus referencias.
+     *
+     * @param ingredientesRefs Lista de referencias a documentos de ingredientes.
+     */
     private void cargarIngredientes(List<DocumentReference> ingredientesRefs) {
         List<Map<String, Object>> ingredientesList = new ArrayList<>();
         AtomicInteger pendientes = new AtomicInteger(ingredientesRefs.size());
@@ -171,7 +198,6 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             }).addOnFailureListener(e -> {
                 Log.e("DetalleReceta", "Error al cargar ingrediente: ", e);
                 if (pendientes.decrementAndGet() == 0) {
-                    // Manejar caso cuando hay errores pero todos los intentos terminaron
                     if (!ingredientesList.isEmpty()) {
                         adapter = new IngredientesAdapter(ingredientesList);
                         rvingredientes.setAdapter(adapter);
@@ -185,7 +211,11 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             });
         }
     }
-
+    /**
+     * Carga, ordena y muestra las instrucciones de la receta.
+     *
+     * @param instruccionesRefs Lista de referencias a instrucciones.
+     */
     private void cargarInstrucciones(List<DocumentReference> instruccionesRefs) {
         List<InstruccionModelo> instruccionesList = new ArrayList<>();
         AtomicInteger contador = new AtomicInteger(0);
@@ -198,12 +228,10 @@ public class DetalleRecetaActivity extends AppCompatActivity {
                     instruccionesList.add(new InstruccionModelo(orden, paso));
                 }
 
-                // Cuando todas las instrucciones hayan sido cargadas
                 if (contador.incrementAndGet() == instruccionesRefs.size()) {
                     // Ordenar la lista por orden ascendente
                     instruccionesList.sort((i1, i2) -> Integer.compare(i1.getOrden(), i2.getOrden()));
 
-                    // Construir texto ordenado
                     StringBuilder instruccionesText = new StringBuilder();
                     for (InstruccionModelo instruccion : instruccionesList) {
                         instruccionesText.append(instruccion.getOrden())
@@ -211,15 +239,17 @@ public class DetalleRecetaActivity extends AppCompatActivity {
                                 .append(instruccion.getPaso())
                                 .append("\n\n");
                     }
-
-                    // Mostrar en el TextView
                     instrucciones.setText(instruccionesText.toString());
                 }
             });
         }
     }
 
-
+    /**
+     * Registra la visita del usuario a la receta en su historial personal
+     *
+     * @param recetaId ID del documento de la receta visitada.
+     */
     private void registrarVisitaEnHistorial(String recetaId) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         if (userId == null || recetaId == null) return;

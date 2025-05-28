@@ -48,14 +48,24 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class RegistroActivity extends AppCompatActivity {
+/**
+ * Esta clase permite a los usuarios registrarse en la aplicación de recetas.
+ * Incluye validación de campos, registro con Firebase Authentication,
+ * creación de un documento de usuario en Firestore y subida de una imagen de perfil a Firebase Storage.
+ *
+ * Autor: Telma Teixeira
+ * Proyecto: CookbookTFG
+ */
 
+public class RegistroActivity extends AppCompatActivity {
+    // Elementos de la UI para ingresar datos de registro
     private EditText etNombre, etEmail, etContrasena, etRepContrasena;
     private Button btnRegistro;
     private TextView tvInicioSesion;
     private ImageButton btnVolver;
     private CircleImageView imgPerfil;
     private Button btnElegirFoto;
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -66,15 +76,20 @@ public class RegistroActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 200;
     private String imagenTemp;
 
-
+    /**
+     * Metodo onCreate
+     * Inicializa componentes de la UI y configura listeners para los botones.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registro_activity);
 
+        // Inicialización de Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Referencias UI
         etNombre = findViewById(R.id.etNombre);
         etEmail = findViewById(R.id.etEmail);
         etContrasena = findViewById(R.id.etContrasena);
@@ -82,13 +97,14 @@ public class RegistroActivity extends AppCompatActivity {
         btnRegistro = findViewById(R.id.btnRegistro);
         tvInicioSesion = findViewById(R.id.tvInicioSesion);
         btnVolver = findViewById(R.id.btnVolver);
-
         imgPerfil = findViewById(R.id.imgPerfil);
         btnElegirFoto = findViewById(R.id.btnElegirFoto);
         storageRef = FirebaseStorage.getInstance().getReference();
 
+        // Botón para elegir foto de perfil
         btnElegirFoto.setOnClickListener(v -> verificarYPedirPermisos());
 
+        // Botón para registrar al usuario
         btnRegistro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,6 +112,7 @@ public class RegistroActivity extends AppCompatActivity {
             }
         });
 
+        // Redirigir a inicio de sesión
         tvInicioSesion.setOnClickListener(v -> {
             startActivity(new Intent(RegistroActivity.this, LoginActivity.class));
             finish();
@@ -104,6 +121,9 @@ public class RegistroActivity extends AppCompatActivity {
         btnVolver.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Valida los campos y registra al usuario con Firebase Auth y Firestore.
+     */
     private void registrarUsuario() {
         String nombre = etNombre.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
@@ -200,7 +220,9 @@ public class RegistroActivity extends AppCompatActivity {
                     }
                 });
     }
-
+    /**
+     * Verifica si los permisos necesarios están otorgados. Si no, los solicita.
+     */
     private void verificarYPedirPermisos() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
@@ -217,20 +239,9 @@ public class RegistroActivity extends AppCompatActivity {
             mostrarDialogoSeleccionImagen();
         }
     }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mostrarDialogoSeleccionImagen();
-            } else {
-                Toast.makeText(this, "Se necesitan los permisos para continuar", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
+    /**
+     * Muestra el diálogo que permite elegir entre tomar una foto o seleccionar una imagen.
+     */
     private void mostrarDialogoSeleccionImagen() {
         new AlertDialog.Builder(this)
                 .setTitle("Seleccionar imagen de perfil")
@@ -243,7 +254,9 @@ public class RegistroActivity extends AppCompatActivity {
                 })
                 .show();
     }
-
+    /**
+     * Abre la cámara para tomar una foto.
+     */
     private void abrirCamara() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -264,7 +277,9 @@ public class RegistroActivity extends AppCompatActivity {
             }
         }
     }
-
+    /**
+     * Crea un archivo temporal donde se almacenará la foto tomada.
+     */
     private File crearArchivoImagen() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -279,15 +294,18 @@ public class RegistroActivity extends AppCompatActivity {
         return image;
     }
 
-
+    /**
+     * Abre la galería del dispositivo para seleccionar una imagen.
+     */
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
         startActivityForResult(intent, REQUEST_IMAGE_PICK);
     }
 
-
-
+    /**
+     * Sube la imagen de perfil seleccionada a Firebase Storage y actualiza Firestore con la URL.
+     */
     private void subirImagenYRegistrar(String uid, String nombre, String email, ProgressDialog progressDialog) {
         if (imagenUri == null) {
             Toast.makeText(this, "No se ha seleccionado ninguna imagen", Toast.LENGTH_SHORT).show();
@@ -359,6 +377,24 @@ public class RegistroActivity extends AppCompatActivity {
             }
         });
     }
+    /**
+     * Maneja la respuesta del usuario al diálogo de permisos.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mostrarDialogoSeleccionImagen();
+            } else {
+                Toast.makeText(this, "Se necesitan los permisos para continuar", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    /**
+     * Metodo que se usa pra gestionar los resultados de la camara o la galeria, y actualiza la imagen
+     * de perfil del usuario en funcion de la imagen capturada o seleccionada
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

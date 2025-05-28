@@ -23,26 +23,41 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+/**
+ * Adapter personalizado para mostrar una lista de recetas en un RecyclerView.
+ * Permite mostrar información de cada receta (nombre, imagen, autor),
+ * gestionar favoritos y aplicar filtros por nombre o ingredientes.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder> {
 
-    private List<Receta> recetaList;
-    private List<Receta> recetaOriginal;
+    private List<Receta> recetaList; // Lista actual de recetas mostradas
+    private List<Receta> recetaOriginal; // Lista completa de recetas originales (sin filtrar)
     private Context context;
     private FirebaseFirestore db;
     private List<String> ingredientesFiltro = new ArrayList<>();
     private boolean mostrarFavs = true;
 
+    /**
+     * Constructor del adaptador.
+     *
+     * @param recetaList   Lista inicial de recetas.
+     * @param context      Contexto de la actividad o fragmento.
+     * @param mostrarFavs  Si se deben mostrar o no los botones de favoritos.
+     */
     public RecetaAdapter(List<Receta> recetaList, Context context, boolean mostrarFavs) {
         this.recetaList = new ArrayList<>(recetaList);
         this.recetaOriginal = new ArrayList<>(recetaList);
         this.context = context;
         this.mostrarFavs = mostrarFavs;
     }
-
+    /**
+     * Crea la vista XML de cada item de la lista
+     */
     @NonNull
     @Override
     public RecetaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -50,6 +65,9 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         return new RecetaViewHolder(vista);
     }
 
+    /**
+     * Metodo que permite cargar todos los elementos de la receta y visualizarlos
+     */
     @Override
     public void onBindViewHolder(@NonNull RecetaViewHolder holder, int position) {
         Receta receta = recetaList.get(position);
@@ -146,33 +164,19 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         });
     }
 
+    /**
+     * Devuelve la cantidad de recetas que se deben de mostrar en el RecyclerView
+     */
     @Override
     public int getItemCount() {
         Log.d("RecetaAdapter", "Total recetas a mostrar: " + recetaList.size());
         return recetaList.size();
     }
-
-
-    public void filtrarPorIngrediente(String texto) {
-        List<Receta> listaFiltrada = new ArrayList<>();
-
-        for (Receta r : recetaOriginal) {
-            for (DocumentReference ingredienteRef : r.getIngredientes()) {
-                ingredienteRef.get().addOnSuccessListener(documentSnapshot -> {
-                    String nombreIngrediente = documentSnapshot.getString("nombre");
-                    if (nombreIngrediente != null && nombreIngrediente.toLowerCase().contains(texto.toLowerCase())) {
-                        if (!listaFiltrada.contains(r)) {
-                            listaFiltrada.add(r);
-                            recetaList.clear();
-                            recetaList.addAll(listaFiltrada);
-                            notifyDataSetChanged();
-                        }
-                    }
-                });
-            }
-        }
-    }
-
+    /**
+     * Filtra las recetas por nombre y por los ingredientes seleccionados.
+     *
+     * @param texto Texto del nombre a buscar.
+     */
     public void filtrarPorNombre(String texto) {
         List<Receta> listaFiltrada = new ArrayList<>();
         texto = texto.toLowerCase().trim();
@@ -189,9 +193,11 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         recetaList.addAll(listaFiltrada);
         notifyDataSetChanged();
     }
-
-
-
+    /**
+     * Filtra las recetas según los ingredientes seleccionados por el usuario.
+     *
+     * @param ingredientesSeleccionados Lista de IDs de ingredientes seleccionados.
+     */
     public void filtrarPorIngredientesSeleccionados(List<String> ingredientesSeleccionados) {
         this.ingredientesFiltro = ingredientesSeleccionados;
 
@@ -213,9 +219,13 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
         notifyDataSetChanged();
     }
-
-
-
+    /**
+     * Verifica si una receta contiene al menos uno de los ingredientes buscados.
+     *
+     * @param receta               Receta a comprobar.
+     * @param ingredientesBuscados Lista de IDs de ingredientes.
+     * @return true si contiene alguno, false si no.
+     */
     private boolean contieneIngredientes(Receta receta, List<String> ingredientesBuscados) {
         if (receta.getIngredientes() == null) return false;
 
@@ -228,7 +238,11 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         }
         return false;
     }
-
+    /**
+     * Actualiza completamente la lista de recetas.
+     *
+     * @param nuevasRecetas Nueva lista de recetas a mostrar.
+     */
     public void actualizarRecetas(List<Receta> nuevasRecetas) {
         recetaList.clear();
         recetaList.addAll(nuevasRecetas);
@@ -236,7 +250,11 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         recetaOriginal.addAll(nuevasRecetas);
         notifyDataSetChanged();
     }
-
+    /**
+     * Elimina una receta en una posición específica.
+     *
+     * @param posicion Índice de la receta a eliminar.
+     */
     public void eliminarRecetaEnPosicion(int posicion) {
         if (posicion >= 0 && posicion < recetaList.size()) {
             recetaList.remove(posicion);
@@ -245,7 +263,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         }
     }
 
-
+    /** Interface para notificar cuando se elimina un favorito. */
     public interface OnFavoritoCambiadoListener {
         void onFavoritoQuitado(Receta receta, int posicion);
     }
@@ -258,6 +276,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
     private OnRecetaClickListener clickListener;
 
+    /** Interface para manejar clics sobre una receta. */
     public void setOnRecetaClickListener(OnRecetaClickListener listener) {
         this.clickListener = listener;
     }
@@ -266,7 +285,9 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         void onRecetaClick(String recetaId);
     }
 
-
+    /**
+     * ViewHolder para los elementos del RecyclerView.
+     */
     public static class RecetaViewHolder extends RecyclerView.ViewHolder {
 
         ImageView imagenReceta;

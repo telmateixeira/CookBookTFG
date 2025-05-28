@@ -7,10 +7,20 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ *  Esta actividad ofrece dos opciones al usuario:
+ *  Iniciar sesión mediante el botón "Login", o registrarse mediante el botón "Register".
+ *  Al pulsar cualquiera de los botones, se redirige al usuario a la actividad correspondiente.
+ */
 public class BienvenidosActivity extends AppCompatActivity {
 
     private Button btnLogin, btnRegister;
 
+    /**
+     * Metodo llamado al crear la actividad. Inicializa la interfaz y los listeners de los botones.
+     *
+     * @param savedInstanceState Estado previamente guardado de la actividad (si existe).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

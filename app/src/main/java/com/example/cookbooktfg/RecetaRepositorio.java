@@ -17,9 +17,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
+/**
+ * Clase de acceso a datos para las recetas en Firestore.
+ * Proporciona métodos estáticos para obtener recetas generales,
+ * recetas por lista de IDs y recetas favoritas del usuario actual.7
+ *
+ * Autor: Telma Teixeira
+ * Proyecto: CookbookTFG
+ */
 public class RecetaRepositorio {
-
+    /**
+     * Obtiene todas las recetas de la colección "recetas" en Firestore.
+     * Además, marca las recetas que son favoritas del usuario logueado.
+     *
+     * @param callback Función que recibe la lista de recetas obtenidas.
+     *                 Puede ser una lista vacía si ocurre algún error.
+     */
     public static void obtenerTodasLasRecetas(Consumer<List<Receta>> callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("recetas")
@@ -27,18 +40,19 @@ public class RecetaRepositorio {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Receta> recetas = new ArrayList<>();
 
+                    // Convertir cada documento a objeto Receta
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Receta receta = doc.toObject(Receta.class);
                         receta.setId(doc.getId());
                         recetas.add(receta);
                     }
-
+                    // Obtener usuario actual para marcar favoritos
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                     if (user == null) {
-                        callback.accept(recetas); // No logueado, sin favoritos
+                        callback.accept(recetas);
                         return;
                     }
-
+                    // Obtener lista de recetas favoritas del usuario
                     db.collection("usuarios")
                             .document(user.getUid())
                             .get()
@@ -51,7 +65,7 @@ public class RecetaRepositorio {
                                         favoritasIds.add(ref.getId());
                                     }
                                 }
-
+                                // Marcar como favorito cada receta que esté en la lista de favoritos
                                 for (Receta receta : recetas) {
                                     receta.setFavorito(favoritasIds.contains(receta.getId()));
                                 }
@@ -68,7 +82,13 @@ public class RecetaRepositorio {
                     callback.accept(new ArrayList<>());
                 });
     }
-
+    /**
+     * Obtiene una lista de recetas cuyo ID esté en la lista proporcionada.
+     *
+     * @param recetaIds Lista con los IDs de las recetas a obtener.
+     * @param callback Función que recibe la lista de recetas encontradas.
+     *                 Devuelve lista vacía si recetaIds está vacía o si hay errores.
+     */
     public static void obtenerRecetasPorIds(List<String> recetaIds, Consumer<List<Receta>> callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         List<Receta> recetas = new ArrayList<>();
@@ -85,11 +105,11 @@ public class RecetaRepositorio {
                         if (doc.exists()) {
                             Receta receta = doc.toObject(Receta.class);
                             if (receta != null) {
-                                receta.setId(doc.getId());  // Asegúrate de guardar el ID si lo necesitas
+                                receta.setId(doc.getId());
                                 recetas.add(receta);
                             }
                         }
-
+                        // Cuando se hayan procesado todas las recetas, invocar callback
                         if (contador.incrementAndGet() == recetaIds.size()) {
                             callback.accept(recetas);
                         }
@@ -103,8 +123,12 @@ public class RecetaRepositorio {
         }
     }
 
-
-
+    /**
+     * Obtiene todas las recetas favoritas del usuario actualmente logueado.
+     *
+     * @param callback Función que recibe la lista de recetas favoritas.
+     *                 Devuelve lista vacía si no hay usuario logueado o si hay errores.
+     */
     public static void obtenerRecetasFavoritas(Consumer<List<Receta>> callback) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
@@ -157,8 +181,4 @@ public class RecetaRepositorio {
                     callback.accept(new ArrayList<>());
                 });
     }
-
-
-
-
 }

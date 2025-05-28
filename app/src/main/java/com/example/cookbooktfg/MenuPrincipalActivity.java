@@ -21,7 +21,14 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+/**
+ * Actividad principal del menú de la aplicación.
+ * Muestra un listado de recetas, permite buscarlas por nombre o filtrarlas por ingredientes,
+ * y permite al usuario navegar a otras secciones como favoritos, historial o ajustes.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class MenuPrincipalActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -34,6 +41,10 @@ public class MenuPrincipalActivity extends AppCompatActivity {
     private FloatingActionButton fabCrearReceta;
     private ActivityResultLauncher<Intent> crearRecetaLauncher;
 
+    /**
+     * Se ejecuta al crear la actividad. Inicializa las vistas, listeners,
+     * y obtiene las recetas desde Firestore.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +61,7 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
+        // Listener para recargar recetas al volver de CrearRecetaActivity
         crearRecetaLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -62,14 +74,14 @@ public class MenuPrincipalActivity extends AppCompatActivity {
 
         fabCrearReceta = findViewById(R.id.fab_crear_receta);
 
-// Abrir actividad para crear receta
+        // Abrir actividad para crear receta
         fabCrearReceta.setOnClickListener(v -> {
             Intent intent = new Intent(MenuPrincipalActivity.this, CrearRecetaActivity.class);
             crearRecetaLauncher.launch(intent);
         });
 
 
-// Ocultar/mostrar FAB al hacer scroll
+        // Ocultar/mostrar FAB al hacer scroll
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -81,12 +93,11 @@ public class MenuPrincipalActivity extends AppCompatActivity {
             }
         });
 
-
-
         obtenerRecetasDeFirestore();
         configurarBuscador();
         configurarBottomNavigation();
 
+        // Genera recetas aleatorias si aún no existen
         String usuarioActualId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         RecetasGenerator generator = new RecetasGenerator(usuarioActualId);
         generator.generarRecetasSiEsNecesario(5, new RecetasGenerator.RecetasCallback() {
@@ -108,9 +119,10 @@ public class MenuPrincipalActivity extends AppCompatActivity {
                 // Mostrar error en UI o retry
             }
         });
-
     }
-
+    /**
+     * Configura el buscador para filtrar recetas por nombre y botón para aplicar filtros por ingredientes.
+     */
     private void configurarBuscador() {
         etBuscar.addTextChangedListener(new TextWatcher() {
             @Override
@@ -144,7 +156,9 @@ public class MenuPrincipalActivity extends AppCompatActivity {
 
 
     }
-
+    /**
+     * Configura el menú de navegación inferior y gestiona el cambio de actividad.
+     */
     private void configurarBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -171,13 +185,17 @@ public class MenuPrincipalActivity extends AppCompatActivity {
             return false;
         });
     }
-
+    /**
+     * Configura el menú de navegación inferior y gestiona el cambio de actividad.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         obtenerRecetasDeFirestore(); // Esto recarga el adaptador y actualiza favoritos
     }
-
+    /**
+     * Obtiene todas las recetas desde Firestore usando el repositorio.
+     */
     private void obtenerRecetasDeFirestore() {
         RecetaRepositorio.obtenerTodasLasRecetas(recetas -> {
             adapter.actualizarRecetas(recetas);
@@ -185,6 +203,10 @@ public class MenuPrincipalActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Obtiene todos los ingredientes disponibles desde Firestore y los pasa a través del listener.
+     * @param listener Listener que recibe la lista de ingredientes cargados.
+     */
     private void obtenerIngredientesDisponibles(OnIngredientesCargadosListener listener) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("ingredientes")
@@ -210,14 +232,10 @@ public class MenuPrincipalActivity extends AppCompatActivity {
                     Log.e("MenuPrincipal", "Error al cargar ingredientes", e);
                 });
     }
-
-
-
+    /**
+     * Interfaz para recibir los ingredientes disponibles desde Firestore.
+     */
     public interface OnIngredientesCargadosListener {
         void onIngredientesCargados(List<IngredienteModelo> ingredientes);
     }
-
-
-
-
 }

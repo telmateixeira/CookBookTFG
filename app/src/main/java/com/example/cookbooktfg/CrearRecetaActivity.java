@@ -33,6 +33,14 @@ import com.google.firebase.storage.StorageReference;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Esta actividad permite a los usuarios crear una nueva receta en la aplicación de cocina.
+ * El usuario puede introducir el nombre, descripción, duración, dificultad, pasos (instrucciones),
+ * ingredientes (con tipo, nombre y cantidad) y subir imágenes desde la galería o la cámara.
+ *
+ * Autor: Telma Teixeira
+ * Proyecto: CookbookTFG
+ */
 public class CrearRecetaActivity extends AppCompatActivity {
 
     private AutoCompleteTextView autoTipoIng, autoNombreIng;
@@ -57,6 +65,10 @@ public class CrearRecetaActivity extends AppCompatActivity {
     private LinearLayout contenedorImagenes;
     private Button btnSeleccionarImagenes;
 
+    /**
+     * Metodo principal que inicializa la actividad, configura vistas, listeners,
+     * adaptadores y funcionalidades clave como añadir pasos, ingredientes e imágenes.
+     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +117,6 @@ public class CrearRecetaActivity extends AppCompatActivity {
             String cantidad = capitalizarTexto(etCantidad.getText().toString().trim());
 
             if(!tipo.isEmpty() && !nombre.isEmpty() && !cantidad.isEmpty()) {
-                // Verificar si es una sugerencia existente
                 String busqueda = tipo + " - " + nombre;
                 if(referenciaMap.containsKey(busqueda)) {
                     // Es un ingrediente existente
@@ -114,7 +125,6 @@ public class CrearRecetaActivity extends AppCompatActivity {
                     ingrediente.setId(ref.getId()); // Guardar referencia al documento
                     agregarChipIngrediente(ingrediente);
                 } else {
-                    // Es un nuevo ingrediente - crearlo primero
                     obtenerOcrearIngrediente(nombre, tipo, cantidad, new OnIngredienteListoListener() {
                         @Override
                         public void onIngredienteListo(DocumentReference ref) {
@@ -126,8 +136,6 @@ public class CrearRecetaActivity extends AppCompatActivity {
                         }
                     });
                 }
-
-                // Limpiar campos
                 autoTipoIng.setText("");
                 autoNombreIng.setText("");
                 etCantidad.setText("");
@@ -213,7 +221,10 @@ public class CrearRecetaActivity extends AppCompatActivity {
 
         btnSeleccionarImagenes.setOnClickListener(v -> abrirGaleria());
     }
-
+    /**
+     * Configura el RecyclerView que muestra los pasos (instrucciones) de la receta, incluyendo
+     * la lógica para reordenar y eliminar pasos con gestos táctiles.
+     */
     private void configurarRecycler() {
         instruccionesAdapter = new InstruccionesAdapter(listaPasos,
                 (fromPosition, toPosition) -> {
@@ -266,7 +277,11 @@ public class CrearRecetaActivity extends AppCompatActivity {
         }).attachToRecyclerView(rvInstrucciones);
     }
 
-    // Metodo auxiliar para capitalizar texto
+    /**
+     * Capitaliza el primer carácter del texto y convierte el resto a minúsculas.
+     *
+     * @param texto texto a capitalizar
+     */
     private String capitalizarTexto(String texto) {
         if (texto == null || texto.isEmpty()) {
             return texto;
@@ -274,12 +289,17 @@ public class CrearRecetaActivity extends AppCompatActivity {
         return texto.substring(0, 1).toUpperCase() + texto.substring(1).toLowerCase();
     }
 
+    /**
+     * Agrega un Chip visual al ChipGroup con el ingrediente especificado.
+     * Permite eliminar el chip con un botón.
+     *
+     * @param ingrediente objeto que representa el ingrediente
+     */
     private void agregarChipIngrediente(IngredienteModelo ingrediente) {
         Chip chip = new Chip(this);
         chip.setText(ingrediente.getFormatoChip()); // Ej: "Leche semidesnatada: 250ml"
         chip.setCloseIconVisible(true);
 
-        // Guardar objeto completo como tag
         chip.setTag(ingrediente);
 
         chip.setOnCloseIconClickListener(v -> {
@@ -289,6 +309,10 @@ public class CrearRecetaActivity extends AppCompatActivity {
         chipGroupIngredientes.addView(chip);
     }
 
+    /**
+     * Sube todas las imágenes seleccionadas al almacenamiento de Firebase.
+     * Cuando finaliza, llama a guardarRecetaEnFirestore.
+     */
     private void guardarImagenes(String nombre, String descripcion, String dificultad,
                                           String duracion) {
         // Mostrar progreso
@@ -328,7 +352,6 @@ public class CrearRecetaActivity extends AppCompatActivity {
                     urlsFinales.add(downloadUri.toString());
 
                     if (imagenesSubidas.incrementAndGet() == listaImagenesSeleccionadas.size()) {
-                        // Todas las imágenes subidas, guardar receta
                         guardarRecetaEnFirestore(nombre, descripcion, dificultad, duracion, urlsFinales);
                     }
                 } else {
@@ -339,7 +362,10 @@ public class CrearRecetaActivity extends AppCompatActivity {
         }
     }
 
-
+    /**
+     * Guarda la receta en Firestore incluyendo todos sus datos: nombre,
+     * descripción, dificultad, duración, ingredientes, instrucciones e imágenes.
+     */
     private void guardarRecetaEnFirestore(String nombre, String descripcion, String dificultad,
                                           String duracion, List<String> imagenesUrl) {
         // 1. Obtener lista de ingredientes como Map
@@ -389,6 +415,12 @@ public class CrearRecetaActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Guarda cada paso de la receta en la colección instrucciones de Firestore y
+     * almacena las referencias. Al completar todos los pasos, ejecuta onComplete.
+     *
+     * @param onComplete accion a ejecutar tras completar la carga de instrucciones
+     */
     private void guardarInstrucciones(Runnable onComplete) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CollectionReference instruccionesRef = db.collection("instrucciones");
@@ -413,12 +445,15 @@ public class CrearRecetaActivity extends AppCompatActivity {
                         }
 
                         if (completados.incrementAndGet() == listaPasos.size()) {
-                            onComplete.run(); // todas listas, ahora sí guardar receta
+                            onComplete.run();
                         }
                     });
         }
     }
-
+    /**
+     * Procesa el resultado de una consulta de ingredientes desde Firestore, actualiza las
+     * sugerencias de autocompletado y almacena las referencias de los ingredientes.
+     */
     private void onSuccess(QuerySnapshot querySnapshot) {
         sugerenciasIngredientes.clear();
         referenciaMap.clear();
@@ -441,8 +476,9 @@ public class CrearRecetaActivity extends AppCompatActivity {
         autoTipoIng.setThreshold(1);
     }
 
-
-
+    /**
+     * Lanza un intent para seleccionar una o varias imágenes desde la galería del dispositivo.
+     */
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -450,6 +486,10 @@ public class CrearRecetaActivity extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(intent, "Selecciona imágenes"), REQUEST_CODE_GALERIA);
     }
 
+    /**
+     * Maneja el resultado de la selección de imágenes,
+     * ya sea una o múltiples, y muestra sus miniaturas.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -471,6 +511,9 @@ public class CrearRecetaActivity extends AppCompatActivity {
             }
         }
     }
+    /**
+     * Muestra una miniatura de la imagen seleccionada en el contenedor de imágenes.
+     */
     private void mostrarMiniatura(Uri imagenUri) {
         ImageView imageView = new ImageView(this);
         imageView.setLayoutParams(new LinearLayout.LayoutParams(250, 250));
@@ -478,7 +521,13 @@ public class CrearRecetaActivity extends AppCompatActivity {
         imageView.setImageURI(imagenUri);
         contenedorImagenes.addView(imageView);
     }
-
+    /**
+     * Busca un ingrediente existente por nombre en Firestore.
+     * Si no existe, lo crea. Luego, llama al callback con la referencia al documento.
+     *
+     * @param nombre, tipo, cantidad datos del ingrediente
+     * @param callback interfaz para manejar el resultado
+     */
     private void obtenerOcrearIngrediente(String nombre, String tipo, String cantidad, OnIngredienteListoListener callback) {
         FirebaseFirestore.getInstance().collection("ingredientes")
                 .whereEqualTo("nombre", nombre.trim().toLowerCase())
@@ -501,8 +550,9 @@ public class CrearRecetaActivity extends AppCompatActivity {
                     }
                 });
     }
-
-
+    /**
+     * Interfaz de callback para manejar el resultado asincrónico de obtener o crear un ingrediente.
+     */
 
     interface OnIngredienteListoListener {
         void onIngredienteListo(DocumentReference ref);

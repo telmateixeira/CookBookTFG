@@ -25,6 +25,13 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+/**
+ *  Permite visualizar y editar información del perfil, mostrar recetas creadas por el usuario,
+ *  y navegar a otras secciones de la aplicación a través de una barra de navegación inferior.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class AjustesUserActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -36,6 +43,12 @@ public class AjustesUserActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationViewUser;
     private Button btnEditarPerfil;
 
+    /**
+     * Inicializa la actividad, configura la interfaz de usuario, adaptadores,
+     * navegación y obtiene los datos del usuario actual.
+     *
+     * @param savedInstanceState Estado previamente guardado (si lo hay).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +66,6 @@ public class AjustesUserActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         listaRecetasCreadas = new ArrayList<>();
 
-        // Configurar el adaptador con el nuevo MisRecetasAdapter
         configurarAdaptador();
 
         configurarBottomNavigation();
@@ -65,7 +77,9 @@ public class AjustesUserActivity extends AppCompatActivity {
             finish();
         });
     }
-
+    /**
+     * Configura el adaptador de recetas del usuario con callbacks para editar y eliminar.
+     */
     private void configurarAdaptador() {
         adapter = new MisRecetasAdapter(listaRecetasCreadas, new MisRecetasAdapter.OnRecipeActionListener() {
             @Override
@@ -80,7 +94,9 @@ public class AjustesUserActivity extends AppCompatActivity {
         });
         recyclerView.setAdapter(adapter);
     }
-
+    /**
+     * Carga los datos del usuario autenticado desde Firestore y los muestra en pantalla.
+     */
     private void cargarDatosUsuario() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
@@ -107,8 +123,9 @@ public class AjustesUserActivity extends AppCompatActivity {
                     });
         }
     }
-
-
+    /**
+     * Carga las recetas creadas por el usuario desde Firestore y las muestra en el RecyclerView.
+     */
     private void cargarRecetasUsuario() {
         String uid = mAuth.getCurrentUser().getUid();
         db.collection("recetas")
@@ -128,13 +145,21 @@ public class AjustesUserActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error al cargar recetas", Toast.LENGTH_SHORT).show();
                 });
     }
-
+    /**
+     * Lanza la actividad para editar una receta existente.
+     *
+     * @param receta La receta a editar.
+     */
     private void editarReceta(Receta receta) {
         Intent intent = new Intent(this, EditarRecetaActivity.class);
         intent.putExtra("recetaId", receta.getId());
         startActivity(intent);
     }
-
+    /**
+     * Muestra un diálogo de confirmación para eliminar una receta.
+     *
+     * @param receta La receta a eliminar.
+     */
     private void mostrarDialogoConfirmacionEliminar(Receta receta) {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar receta")
@@ -143,7 +168,11 @@ public class AjustesUserActivity extends AppCompatActivity {
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
-
+    /**
+     * Elimina una receta de Firestore y actualiza la lista en pantalla.
+     *
+     * @param receta La receta a eliminar.
+     */
     private void eliminarReceta(Receta receta) {
         db.collection("recetas").document(receta.getId())
                 .delete()
@@ -159,7 +188,9 @@ public class AjustesUserActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error al eliminar receta", Toast.LENGTH_SHORT).show();
                 });
     }
-
+    /**
+     * Configura el menú de navegación inferior para permitir moverse entre actividades.
+     */
     private void configurarBottomNavigation() {
         bottomNavigationViewUser.setSelectedItemId(R.id.nav_ajustes);
         bottomNavigationViewUser.setOnItemSelectedListener(item -> {

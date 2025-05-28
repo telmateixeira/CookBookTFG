@@ -29,6 +29,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+/**
+ * Actividad que muestra el historial de recetas vistas recientemente por el usuario.
+ * Carga hasta 50 recetas del historial ordenadas por fecha de visita descendente y
+ * permite al usuario acceder al detalle de cada receta.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class HistorialActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -38,6 +46,10 @@ public class HistorialActivity extends AppCompatActivity {
     private TextView tvEmpty;
     private BottomNavigationView bottomNavigationViewHist;
 
+    /**
+     * Inicializa la actividad, incluyendo el RecyclerView, adaptador y la barra de navegación.
+     * También se inicia la carga del historial de recetas desde Firestore.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +75,10 @@ public class HistorialActivity extends AppCompatActivity {
         cargarHistorial();
     }
 
+    /**
+     * Configura el menú de navegación inferior para permitir cambiar entre secciones
+     * como inicio, favoritos y ajustes.
+     */
     private void configurarBottomNavigation() {
         bottomNavigationViewHist.setSelectedItemId(R.id.nav_historial);
         bottomNavigationViewHist.setOnItemSelectedListener(item -> {
@@ -83,73 +99,11 @@ public class HistorialActivity extends AppCompatActivity {
             return false;
         });
     }
-
-//    private void cargarHistorial() {
-//        progressBar.setVisibility(View.VISIBLE);
-//        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//
-//        // Primero obtenemos los IDs de las recetas favoritas
-//        db.collection("usuarios")
-//                .document(userId)
-//                .collection("favoritos")
-//                .get()
-//                .addOnSuccessListener(favoritosDocs -> {
-//                    List<String> favoritoIds = new ArrayList<>();
-//                    for (DocumentSnapshot doc : favoritosDocs) {
-//                        favoritoIds.add(doc.getId());
-//                    }
-//
-//                    // Luego obtenemos el historial
-//                    db.collection("usuarios")
-//                            .document(userId)
-//                            .collection("historial")
-//                            .orderBy("fechaVisita", Query.Direction.DESCENDING)
-//                            .limit(50)
-//                            .get()
-//                            .addOnSuccessListener(historialDocs -> {
-//                                List<String> recetaIds = new ArrayList<>();
-//                                for (DocumentSnapshot doc : historialDocs) {
-//                                    DocumentReference recetaRef = doc.getDocumentReference("recetaId");
-//                                    if (recetaRef != null) {
-//                                        recetaIds.add(recetaRef.getId());
-//                                    }
-//                                }
-//
-//                                if (recetaIds.isEmpty()) {
-//                                    mostrarVacio();
-//                                } else {
-//                                    RecetaRepositorio.obtenerRecetasPorIds(recetaIds, recetas -> {
-//                                        // Marcamos las recetas favoritas antes de pasarlas al adaptador
-//                                        for (Receta receta : recetas) {
-//                                            receta.setFavorito(favoritoIds.contains(receta.getId()));
-//                                            Log.d("Historial",favoritoIds.contains(receta.getId()) + " " );
-//                                        }
-//
-//                                        runOnUiThread(() -> {
-//                                            adapter.actualizarRecetas(recetas);
-//                                            progressBar.setVisibility(View.GONE);
-//                                            tvEmpty.setVisibility(recetas.isEmpty() ? View.VISIBLE : View.GONE);
-//                                        });
-//                                    });
-//                                }
-//                            })
-//                            .addOnFailureListener(e -> {
-//                                progressBar.setVisibility(View.GONE);
-//                                tvEmpty.setVisibility(View.VISIBLE);
-//                                tvEmpty.setText("Error al cargar historial.");
-//                            });
-//                })
-//                .addOnFailureListener(e -> {
-//                    progressBar.setVisibility(View.GONE);
-//                    tvEmpty.setVisibility(View.VISIBLE);
-//                    tvEmpty.setText("Error al cargar favoritos.");
-//                });
-//
-//
-//
-//    }
-
+    /**
+     * Carga las recetas visitadas recientemente por el usuario desde Firestore.
+     * También marca aquellas recetas que están en la lista de favoritos.
+     * Si no hay recetas o hay un error, se muestra un mensaje correspondiente.
+     */
     private void cargarHistorial() {
         progressBar.setVisibility(View.VISIBLE);
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -169,7 +123,6 @@ public class HistorialActivity extends AppCompatActivity {
                         }
                     }
 
-                    // Luego obtenemos el historial
                     db.collection("usuarios")
                             .document(userId)
                             .collection("historial")
@@ -189,7 +142,7 @@ public class HistorialActivity extends AppCompatActivity {
                                     mostrarVacio();
                                 } else {
                                     RecetaRepositorio.obtenerRecetasPorIds(recetaIds, recetas -> {
-                                        // Marcamos las recetas favoritas
+                                        // Se marcan las recetas favoritas
                                         for (Receta receta : recetas) {
                                             boolean esFavorita = favoritoIds.contains(receta.getId());
                                             receta.setFavorito(esFavorita);
@@ -217,8 +170,10 @@ public class HistorialActivity extends AppCompatActivity {
                     tvEmpty.setText("Error al cargar favoritos.");
                 });
     }
-
-
+    /**
+     * Muestra un mensaje indicando que el historial está vacío
+     * y oculta la barra de progreso.
+     */
     private void mostrarVacio() {
         progressBar.setVisibility(View.GONE);
         tvEmpty.setVisibility(View.VISIBLE);

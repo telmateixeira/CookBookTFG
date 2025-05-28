@@ -1,7 +1,5 @@
 package com.example.cookbooktfg;
 
-
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -42,6 +40,13 @@ import java.util.Date;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+/**
+ * Actividad para editar el perfil del usuario en la aplicación CookbookTFG.
+ * Permite al usuario modificar su nombre, cambiar su foto de perfil y actualizar su contraseña.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class EditarPerfilActivity extends AppCompatActivity {
     private EditText editNombre;
     private ImageView imgPerfil;
@@ -54,11 +59,13 @@ public class EditarPerfilActivity extends AppCompatActivity {
     private Uri imagenUri;
     private String imagentemp;
     private static final int PERMISSION_REQUEST_CODE = 200;
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int REQUEST_IMAGE_PICK = 2;
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageLauncher;
 
+    /**
+     * Inicializa la actividad y los componentes de la UI, obtiene los datos actuales del usuario
+     * y configura los listeners de los botones.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +89,9 @@ public class EditarPerfilActivity extends AppCompatActivity {
         btnCambiarContrasena.setOnClickListener(v -> mostrarDialogoCambioContrasena());
         imgPerfil.setOnClickListener(v -> verificarYPedirPermisos());
     }
-
+    /**
+     * Registra los ActivityResultLaunchers para tomar fotos o seleccionar imágenes de la galería.
+     */
     private void inicializarLaunchers() {
         takePictureLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
@@ -105,7 +114,10 @@ public class EditarPerfilActivity extends AppCompatActivity {
                 }
         );
     }
-
+    /**
+     * Verifica si se tienen permisos de cámara, y si no los tiene, los solicita.
+     * Si ya tiene permisos, muestra el diálogo para seleccionar entre tomar una foto o elegir de galería.
+     */
     private void verificarYPedirPermisos() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -115,7 +127,10 @@ public class EditarPerfilActivity extends AppCompatActivity {
             mostrarDialogoSeleccionImagen();
         }
     }
-
+    /**
+     * Callback para el resultado de la solicitud de permisos.
+     * Si se conceden, abre el diálogo para elegir imagen; si no, muestra un mensaje de advertencia.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -127,7 +142,10 @@ public class EditarPerfilActivity extends AppCompatActivity {
             }
         }
     }
-
+    /**
+     * Muestra un diálogo para que el usuario elija entre tomar una foto con la cámara
+     * o seleccionar una imagen desde la galería.
+     */
     private void mostrarDialogoSeleccionImagen() {
         new AlertDialog.Builder(this)
                 .setTitle("Seleccionar imagen de perfil")
@@ -140,7 +158,9 @@ public class EditarPerfilActivity extends AppCompatActivity {
                 })
                 .show();
     }
-
+    /**
+     * Abre la cámara para tomar una foto y guardar la imagen en un archivo temporal.
+     */
     private void abrirCamara() {
         try {
             File photoFile = crearArchivoImagen();
@@ -155,13 +175,20 @@ public class EditarPerfilActivity extends AppCompatActivity {
             Log.e("Camera", "Error al crear archivo", ex);
         }
     }
-
+    /**
+     * Abre la galería del dispositivo para que el usuario seleccione una imagen.
+     */
     private void abrirGaleria() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
         pickImageLauncher.launch(Intent.createChooser(intent, "Selecciona una imagen"));
     }
-
+    /**
+     * Crea un archivo temporal donde se almacenará la imagen capturada con la cámara.
+     *
+     * @return Archivo temporal de imagen.
+     * @throws IOException si ocurre un error al crear el archivo.
+     */
     private File crearArchivoImagen() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -170,7 +197,10 @@ public class EditarPerfilActivity extends AppCompatActivity {
         imagentemp = image.getAbsolutePath();
         return image;
     }
-
+    /**
+     * Carga los datos actuales del usuario (nombre y foto de perfil) desde Firestore
+     * y los muestra en la UI.
+     */
     private void cargarDatosUsuario() {
         String uid = mAuth.getCurrentUser().getUid();
         db.collection("usuarios").document(uid).get().addOnSuccessListener(doc -> {
@@ -186,7 +216,9 @@ public class EditarPerfilActivity extends AppCompatActivity {
             }
         });
     }
-
+    /**
+     * Guarda los cambios realizados por el usuario (nombre y foto de perfil) en Firestore y Firebase Storage.
+     */
     private void guardarCambios() {
         String nuevoNombre = editNombre.getText().toString().trim();
         if (nuevoNombre.isEmpty()) {
@@ -217,7 +249,13 @@ public class EditarPerfilActivity extends AppCompatActivity {
             actualizarPerfil(uid, nuevoNombre, null);
         }
     }
-
+    /**
+     * Actualiza el nombre y/o URL de la foto de perfil del usuario en la base de datos de Firestore.
+     *
+     * @param uid ID del usuario.
+     * @param nombre Nuevo nombre del usuario.
+     * @param fotoUrl URL de la nueva foto de perfil (puede ser null si no se cambió).
+     */
     private void actualizarPerfil(String uid, String nombre, String fotoUrl) {
         if (fotoUrl != null) {
             db.collection("usuarios").document(uid)
@@ -241,14 +279,19 @@ public class EditarPerfilActivity extends AppCompatActivity {
                     });
         }
     }
-
+    /**
+     * Redirige al usuario de vuelta a la actividad de ajustes después de guardar los cambios.
+     */
     private void redirigirAAjustes() {
         Intent intent = new Intent(this, AjustesUserActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
     }
-
+    /**
+     * Muestra un diálogo para permitir al usuario cambiar su contraseña.
+     * Incluye campos para la contraseña actual, nueva y confirmación.
+     */
     private void mostrarDialogoCambioContrasena() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Cambiar Contraseña");
@@ -289,7 +332,14 @@ public class EditarPerfilActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancelar", null);
         builder.show();
     }
-
+    /**
+     * Valida las contraseñas introducidas por el usuario y realiza el cambio de contraseña
+     * si pasa la reautenticación con Firebase.
+     *
+     * @param contrasenaActual Contraseña actual del usuario.
+     * @param nuevaContrasena Nueva contraseña deseada.
+     * @param confirmarContrasena Confirmación de la nueva contraseña.
+     */
     private void validarYCambiarContrasena(String contrasenaActual, String nuevaContrasena, String confirmarContrasena) {
         // Validaciones básicas
         if (contrasenaActual.isEmpty() || nuevaContrasena.isEmpty() || confirmarContrasena.isEmpty()) {
@@ -316,7 +366,6 @@ public class EditarPerfilActivity extends AppCompatActivity {
             user.reauthenticate(credential)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // Reautenticación exitosa, proceder a cambiar contraseña
                             user.updatePassword(nuevaContrasena)
                                     .addOnCompleteListener(updateTask -> {
                                         if (updateTask.isSuccessful()) {

@@ -8,29 +8,44 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Clase que modela la estructura de datos recibida desde la API Spoonacular,
+ * incluyendo clases internas que representan recetas, ingredientes e instrucciones.
+ * Además, incluye un metodo para convertir objetos Spoonacular a la clase local Receta
+ * y guardarlos en Firestore, creando referencias a ingredientes e instrucciones.
+ */
 public class SpoonacularReceta {
 
-    // Modelo para la respuesta JSON de Spoonacular (nombre original: "recipes")
+    /**
+     * Modelo que representa la respuesta JSON general de la API Spoonacular
+     * para la obtención de recetas aleatorias (campo "recipes").
+     */
     public static class SpoonacularResponse {
-        private List<SpoonacularRecipe> recipes; // ¡Ojo al nombre! Debe coincidir con la API
-
+        private List<SpoonacularRecipe> recipes;
+        /**
+         * Obtiene la lista de recetas.
+         * @return Lista de objetos SpoonacularRecipe.
+         */
         public List<SpoonacularRecipe> getRecipes() {
             return recipes;
         }
     }
 
-    // Modelo para receta (campos exactos de Spoonacular)
+    /**
+     * Modelo que representa una receta según la estructura de Spoonacular.
+     * Incluye detalles como título, imagen, resumen HTML, ingredientes e instrucciones.
+     */
     public static class SpoonacularRecipe {
         private int id;
-        private String title; // "title" en la API, no "titulo"
+        private String title;
         private String image;
-        private String summary; // "summary" contiene HTML
+        private String summary;
         private String readyInMinutes;
         private List<String> dishTypes;
-        private List<SpoonacularExtendedIngredient> extendedIngredients; // Nombre exacto de la API
-        private List<SpoonacularAnalyzedInstruction> analyzedInstructions; // Nombre exacto
+        private List<SpoonacularExtendedIngredient> extendedIngredients;
+        private List<SpoonacularAnalyzedInstruction> analyzedInstructions;
 
-        // Getters
+        // Getters para acceder a los campos privados
         public int getId() { return id; }
         public String getTitle() { return title; }
         public String getImage() { return image; }
@@ -40,11 +55,14 @@ public class SpoonacularReceta {
         public List<SpoonacularAnalyzedInstruction> getAnalyzedInstructions() { return analyzedInstructions; }
     }
 
-    // Modelo para ingredientes extendidos (Spoonacular)
+    /**
+     * Modelo que representa un ingrediente extendido de Spoonacular,
+     * con información como nombre, categoría (pasillo), cantidad y unidad.
+     */
     public static class SpoonacularExtendedIngredient {
-        private String name; // Nombre simple
-        private String nameClean; // Nombre limpio (sin detalles)
-        private String aisle; // tipo (ej: "Dairy")
+        private String name;
+        private String nameClean;
+        private String aisle;
         private double amount;
         private String unit;
 
@@ -53,33 +71,46 @@ public class SpoonacularReceta {
         public String getNameClean() { return nameClean; }
         public String getAisle() { return aisle; } // Útil para el campo "tipo" en Firestore
 
-        public double getAmount() {
-            return amount;
-        }
+        public double getAmount() {return amount;}
 
-        public String getUnit() {
-            return unit;
-        }
+        public String getUnit() {return unit;}
     }
 
-    // Modelo para instrucciones analizadas
+    /**
+     * Modelo que representa las instrucciones analizadas de la receta.
+     * Contiene un nombre descriptivo y una lista de pasos.
+     */
     public static class SpoonacularAnalyzedInstruction {
-        private String name; // Ej: "Instructions"
+        private String name;
         private List<SpoonacularStep> steps;
-
+        /**
+         * Obtiene la lista de pasos.
+         * @return Lista de objetos SpoonacularStep.
+         */
         public List<SpoonacularStep> getSteps() { return steps; }
     }
 
-    // Modelo para pasos
+    /**
+     * Modelo que representa un paso individual dentro de las instrucciones.
+     * Contiene el número del paso y la descripción textual.
+     */
     public static class SpoonacularStep {
         private int number;
-        private String step; // Texto del paso
+        private String step;
 
         public String getStep() { return step; }
         public int getNumber() { return number; }
     }
 
-    // Método de conversión a tu clase Receta (versión mejorada)
+    /**
+     * Metodo estático que convierte un objeto SpoonacularRecipe a un objeto local Receta,
+     * y guarda la receta junto con sus ingredientes e instrucciones en Firestore.
+     *
+     * @param apiRecipe Objeto SpoonacularRecipe recibido desde la API.
+     * @param creadorId ID del usuario creador que añade la receta.
+     * @param db        Instancia de FirebaseFirestore para operaciones de base de datos.
+     * @param listener  Callback que se invoca cuando la receta ya está lista con todas sus referencias.
+     */
     public static void convertToFirestoreRecipe(SpoonacularRecipe apiRecipe, String creadorId,
                                                 FirebaseFirestore db, OnRecipeConvertedListener listener) {
         Receta receta = new Receta();
@@ -148,11 +179,25 @@ public class SpoonacularReceta {
                 });
     }
 
-
+    /**
+     * Interfaz callback para notificar cuando la receta ya está convertida y lista.
+     */
     public interface OnRecipeConvertedListener {
+        /**
+         * Se llama cuando la receta ha sido convertida y guardada con éxito,
+         * incluyendo las referencias a ingredientes e instrucciones en Firestore.
+         *
+         * @param receta Objeto Receta listo para usarse.
+         */
         void onRecipeReady(Receta receta);
     }
 
+    /**
+     * Calcula una dificultad aproximada basada en la duración en minutos.
+     *
+     * @param minutes Tiempo de preparación en minutos.
+     * @return String que representa la dificultad ("Fácil", "Media" o "Difícil").
+     */
     private static String calculateDifficulty(int minutes) {
         return minutes < 30 ? "Fácil" : minutes < 60 ? "Media" : "Difícil";
     }

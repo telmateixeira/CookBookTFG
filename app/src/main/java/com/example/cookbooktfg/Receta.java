@@ -7,6 +7,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Clase que representa una receta de cocina en la aplicación.
+ * Contiene toda la información necesaria para mostrar, almacenar y convertir recetas.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class Receta {
     @Exclude
     private String id;
@@ -21,14 +28,18 @@ public class Receta {
     private transient List<String> nombresIngredientes; // transient para que no se guarde en Firestore
     private List<DocumentReference> instrucciones;
     private boolean favorito;
-    private String fuente; // "spoonacular" o "usuario"
-    private int idSpoonacular; // ID original de Spoonacular
 
+    private String fuente; // Fuente de la receta: "usuario" o "spoonacular"
+    private int idSpoonacular; // ID original de la receta si proviene de Spoonacular
 
-    public Receta() {
-        // Constructor vacío Firestore
-    }
+    /**
+     * Constructor vacío requerido por Firestore para la deserialización.
+     */
+    public Receta() {}
 
+    /**
+     * Constructor con parámetros para inicializar una receta completa.
+     */
     public Receta(String id, String creadorId, String nombre, String descripcion, String dificultad, String duracion, List<String> imagenes, Date fechaCreacion, List<DocumentReference> ingredientes, List<DocumentReference> instrucciones, boolean favorito) {
         this.id = id;
         this.creadorId = creadorId;
@@ -43,6 +54,7 @@ public class Receta {
         this.favorito = favorito;
     }
 
+    // --- Getters y Setters ---
     public String getId() {
         return id;
     }
@@ -114,13 +126,17 @@ public class Receta {
     public void setIngredientes(List<DocumentReference> ingredientes) {
         this.ingredientes = ingredientes;
     }
+    /**
+     * Devuelve una lista de los nombres de los ingredientes.
+     * Si aún no se ha inicializado, se crea una lista vacía con nombres vacíos por defecto.
+     */
     public List<String> getNombresIngredientes() {
         if (nombresIngredientes == null) {
             nombresIngredientes = new ArrayList<>();
             if (ingredientes != null) {
                 for (DocumentReference ref : ingredientes) {
-                    // Esto debería llenarse cuando cargas las recetas
-                    nombresIngredientes.add(""); // O el nombre real si lo tienes
+                    // Esto debería llenarse cuando se cargan las recetas
+                    nombresIngredientes.add("");
                 }
             }
         }
@@ -162,34 +178,13 @@ public class Receta {
     public void setIdSpoonacular(int idSpoonacular) {
         this.idSpoonacular = idSpoonacular;
     }
-    // Método estático para convertir SpoonacularRecipe a Receta
-    public static Receta fromSpoonacular(SpoonacularReceta.SpoonacularRecipe spoonRecipe, String creadorId) {
-        Receta receta = new Receta();
 
-        receta.setIdSpoonacular(spoonRecipe.getId());
-        receta.setFuente("spoonacular");
-        receta.setNombre(spoonRecipe.getTitle());
-        receta.setDescripcion(spoonRecipe.getSummary() != null ? spoonRecipe.getSummary().replaceAll("<[^>]*>", "") : "");
-        receta.setCreadorId(creadorId);
-        receta.setDuracion(String.valueOf(spoonRecipe.getReadyInMinutes()));
-        receta.setDificultad(calcularDificultad(receta.getDuracion()));
-        receta.setFavorito(false);
-        receta.setFechaCreacion(new Date());
-
-        List<String> imagenes = new ArrayList<>();
-        if (spoonRecipe.getImage() != null) {
-            imagenes.add(spoonRecipe.getImage());
-        }
-        receta.setImagenes(imagenes);
-
-        // Ingredientes e instrucciones se asignan luego porque requieren acceso a Firestore
-        receta.setIngredientes(new ArrayList<>());
-        receta.setInstrucciones(new ArrayList<>());
-
-        return receta;
-    }
-
-    // Método para calcular dificultad según duración en minutos
+    /**
+     * Calcula la dificultad de una receta basándose en la duración estimada.
+     *
+     * @param duracion Texto que representa la duración (puede contener letras)
+     * @return "Fácil", "Media" o "Difícil"
+     */
     public static String calcularDificultad(String duracion) {
         try {
             int minutos = Integer.parseInt(duracion.replaceAll("[^0-9]", ""));

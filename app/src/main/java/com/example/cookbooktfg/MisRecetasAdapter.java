@@ -19,18 +19,33 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+/**
+ * Adaptador para RecyclerView que muestra una lista de recetas creadas por el usuario.
+ * Permite editar y eliminar recetas desde la interfaz.
+ *
+ * Cada ítem muestra el título de la receta, el nombre del autor (obtenido desde Firestore),
+ * y una imagen de la receta (primera imagen de la lista). Además incluye botones para editar
+ * y eliminar la receta.
+ */
 public class MisRecetasAdapter extends RecyclerView.Adapter<MisRecetasAdapter.MisRecetasViewHolder> {
 
     private List<Receta> misRecetas;
     private OnRecipeActionListener listener;
     private final Map<String, String> nombresAutores = new HashMap<>();
-
+    /**
+     * Interfaz para gestionar las acciones sobre una receta:
+     * editar o eliminar.
+     */
     public interface OnRecipeActionListener {
         void onEditRecipe(Receta receta);
         void onDeleteRecipe(Receta receta);
     }
-
+    /**
+     * Constructor del adaptador.
+     *
+     * @param misRecetas lista inicial de recetas.
+     * @param listener   listener para eventos de edición y eliminación.
+     */
     public MisRecetasAdapter(List<Receta> misRecetas, OnRecipeActionListener listener) {
         this.misRecetas = misRecetas;
         this.listener = listener;
@@ -39,6 +54,7 @@ public class MisRecetasAdapter extends RecyclerView.Adapter<MisRecetasAdapter.Mi
     @NonNull
     @Override
     public MisRecetasViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Infla el layout de un ítem editable para la receta
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_receta_editable, parent, false);
         return new MisRecetasViewHolder(view);
@@ -46,25 +62,20 @@ public class MisRecetasAdapter extends RecyclerView.Adapter<MisRecetasAdapter.Mi
 
     @Override
     public void onBindViewHolder(@NonNull MisRecetasViewHolder holder, int position) {
+        // Enlaza la receta en la posición indicada con el ViewHolder
         holder.bind(misRecetas.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return misRecetas.size();  // Corregido: devolver el tamaño real de la lista
+        // Devuelve el número de recetas en la lista
+        return misRecetas.size();
     }
 
-    // Métodos adicionales para actualizar datos
-    public void actualizarLista(List<Receta> nuevasRecetas) {
-        misRecetas = nuevasRecetas;
-        notifyDataSetChanged();
-    }
-
-    public void eliminarReceta(int position) {
-        misRecetas.remove(position);
-        notifyItemRemoved(position);
-    }
-
+    /**
+     * ViewHolder que representa un ítem en la lista de recetas.
+     * Contiene referencias a vistas y lógica para mostrar los datos.
+     */
     class MisRecetasViewHolder extends RecyclerView.ViewHolder {
         private final TextView tituloR;
         private final TextView autorR;
@@ -79,7 +90,11 @@ public class MisRecetasAdapter extends RecyclerView.Adapter<MisRecetasAdapter.Mi
             btnBorrar = itemView.findViewById(R.id.botonEliminarIcono);
             imgReceta = itemView.findViewById(R.id.imagenReceta);
         }
-
+        /**
+         * Asocia los datos de una receta a las vistas del ViewHolder.
+         *
+         * @param receta objeto Receta a mostrar.
+         */
         public void bind(Receta receta) {
             tituloR.setText(receta.getNombre());
             String creadorId = receta.getCreadorId();
@@ -101,7 +116,7 @@ public class MisRecetasAdapter extends RecyclerView.Adapter<MisRecetasAdapter.Mi
             if (nombresAutores.containsKey(creadorId)) {
                 autorR.setText(nombresAutores.get(creadorId));
             } else {
-                autorR.setText("Cargando autor..."); // Placeholder temporal
+                autorR.setText("Cargando autor...");
                 FirebaseFirestore.getInstance()
                         .collection("usuarios")
                         .document(creadorId)

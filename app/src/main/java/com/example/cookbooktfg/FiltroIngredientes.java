@@ -13,7 +13,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+/**
+ * Clase para mostrar un cuadro de diálogo con un filtro por ingredientes agrupados por tipo.
+ * Permite al usuario seleccionar ingredientes específicos y aplicar un filtro.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
+ */
 public class FiltroIngredientes {
+    /**
+     * Muestra un diálogo de filtro por ingredientes agrupados por tipo.
+     *
+     * @param context               Contexto de la aplicación.
+     * @param ingredientes          Lista de ingredientes disponibles para filtrar.
+     * @param seleccionadosActuales Lista de IDs de ingredientes que ya estaban seleccionados.
+     * @param listener              Interfaz para recibir los ingredientes seleccionados al aplicar el filtro.
+     */
     public static void mostrar(Context context, List<IngredienteModelo> ingredientes,
                                List<String> seleccionadosActuales,
                                FiltroListener listener) {
@@ -39,7 +55,7 @@ public class FiltroIngredientes {
 
         // Crear vistas para cada tipo
         for (String tipo : ingredientesPorTipo.keySet()) {
-            // CheckBox para el tipo (header)
+            // CheckBox para el tipo
             CheckBox cbTipo = new CheckBox(context);
             cbTipo.setText(tipo);
             cbTipo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
@@ -138,6 +154,12 @@ public class FiltroIngredientes {
         builder.show();
     }
 
+    /**
+     * Actualiza el estado del CheckBox de tipo en función de cuántos ingredientes están seleccionados.
+     *
+     * @param cbTipo             CheckBox del tipo de ingrediente.
+     * @param layoutIngredientes Layout que contiene los ingredientes de ese tipo.
+     */
     private static void actualizarEstadoTipo(CheckBox cbTipo, LinearLayout layoutIngredientes) {
         int total = 0;
         int seleccionados = 0;
@@ -161,6 +183,9 @@ public class FiltroIngredientes {
         }
     }
 
+    /**
+     * Interfaz para manejar el resultado del filtro.
+     */
     public interface FiltroListener {
         void onFiltroAplicado(List<String> ingredientesSeleccionados);
     }

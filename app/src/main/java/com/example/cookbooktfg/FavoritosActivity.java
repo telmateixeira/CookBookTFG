@@ -17,6 +17,13 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Actividad que muestra las recetas marcadas como favoritas por el usuario.
+ * Permite visualizar y eliminar recetas favoritas.
+ * <p>
+ * Autor: Telma Teixeira
+ * Proyecto: CookbookTFG
+ */
 public class FavoritosActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewRecetasFav;
@@ -25,6 +32,10 @@ public class FavoritosActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationViewFav;
     private TextView tvEmpty;
 
+    /**
+     * Metodo llamado al crear la actividad.
+     * Configura la interfaz, inicializa el RecyclerView y carga las recetas favoritas.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +65,10 @@ public class FavoritosActivity extends AppCompatActivity {
         cargarRecetasFavoritas();
     }
 
-    private void configurarBottomNavigation(){
+    /**
+     * Configura la navegación inferior para cambiar entre actividades.
+     */
+    private void configurarBottomNavigation() {
         bottomNavigationViewFav.setSelectedItemId(R.id.nav_favoritos);
         bottomNavigationViewFav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -75,29 +89,33 @@ public class FavoritosActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Carga desde el repositorio las recetas favoritas del usuario actual
+     * y actualiza la interfaz.
+     */
     private void cargarRecetasFavoritas() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
         RecetaRepositorio.obtenerRecetasFavoritas(recetas -> {
             Log.d("Favoritos", "Recetas favoritas recibidas: " + recetas.size());
-
-            // Update the local list
+            // Actualiza la lista local
             recetaFavs.clear();
             recetaFavs.addAll(recetas);
-
-            // Update the adapter
+            // Actualiza el adaptador con las nuevas recetas
             adapter.actualizarRecetas(recetaFavs);
-
-            // Update empty state
+            // Muestra u oculta el mensaje de "sin favoritos"
             tvEmpty.setVisibility(recetaFavs.isEmpty() ? View.VISIBLE : View.GONE);
-
+            // Imprimir recetas en log (debug)
             for (Receta r : recetaFavs) {
                 Log.d("Favoritos", "→ " + r.getNombre());
             }
         });
     }
-
+    /**
+     * Se llama cada vez que la actividad se vuelve visible.
+     * Recarga las recetas favoritas para mantener la lista actualizada.
+     */
     @Override
     protected void onResume() {
         super.onResume();
