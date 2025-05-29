@@ -39,7 +39,7 @@
 
 
 
-        <activity android:name=".BienvenidosActivity" android:exported="true">
+        <activity android:name=".Actividades.BienvenidosActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -47,43 +47,43 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".Actividades.LoginActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".RegistroActivity"
+            android:name=".Actividades.RegistroActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".MenuPrincipalActivity"
+            android:name=".Actividades.MenuPrincipalActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".CrearRecetaActivity"
+            android:name=".Actividades.CrearRecetaActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".AjustesUserActivity"
+            android:name=".Actividades.AjustesUserActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".DetalleRecetaActivity"
+            android:name=".Actividades.DetalleRecetaActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".FavoritosActivity"
+            android:name=".Actividades.FavoritosActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".HistorialActivity"
+            android:name=".Actividades.HistorialActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".EditarPerfilActivity"
+            android:name=".Actividades.EditarPerfilActivity"
             android:exported="true">
         </activity>
         <activity
-            android:name=".EditarRecetaActivity"
+            android:name=".Actividades.EditarRecetaActivity"
             android:exported="true">
         </activity>
         <meta-data

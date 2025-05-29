@@ -1,10 +1,9 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,6 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.cookbooktfg.Modelos.MisRecetasAdapter;
+import com.example.cookbooktfg.R;
+import com.example.cookbooktfg.Modelos.Receta;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -26,8 +28,8 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
- *  Permite visualizar y editar información del perfil, mostrar recetas creadas por el usuario,
- *  y navegar a otras secciones de la aplicación a través de una barra de navegación inferior.
+ *  Permite visualizar y editar información del perfil, mostrar recetas creadas por el usuario
+ *  y cerrar sesion.
  *
  *  Autor: Telma Teixeira
  *  Proyecto: CookbookTFG
@@ -41,7 +43,7 @@ public class AjustesUserActivity extends AppCompatActivity {
     private TextView nombreUser, emailUser;
     private CircleImageView imagenPerfil;
     private BottomNavigationView bottomNavigationViewUser;
-    private Button btnEditarPerfil;
+    private Button btnEditarPerfil, btnCerrarSesion;
 
     /**
      * Inicializa la actividad, configura la interfaz de usuario, adaptadores,
@@ -61,6 +63,7 @@ public class AjustesUserActivity extends AppCompatActivity {
         emailUser = findViewById(R.id.textViewEmail);
         imagenPerfil = findViewById(R.id.imgPerfil);
         btnEditarPerfil = findViewById(R.id.botonEditarPerfil);
+        btnCerrarSesion = findViewById(R.id.botonCerrarSesion);
         recyclerView = findViewById(R.id.recyclerViewMisRecetas);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -71,6 +74,8 @@ public class AjustesUserActivity extends AppCompatActivity {
         configurarBottomNavigation();
         cargarDatosUsuario();
         cargarRecetasUsuario();
+
+        btnCerrarSesion.setOnClickListener(v -> cerrarSesion());
 
         btnEditarPerfil.setOnClickListener(v -> {
             startActivity(new Intent(this, EditarPerfilActivity.class));
@@ -155,6 +160,26 @@ public class AjustesUserActivity extends AppCompatActivity {
         intent.putExtra("recetaId", receta.getId());
         startActivity(intent);
     }
+
+    /**
+     * Permite cerrar la sesión del usuario logueado
+     */
+    private void cerrarSesion() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro de que quieres cerrar sesión?")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    FirebaseAuth.getInstance().signOut(); // Cierra la sesión
+                    Intent intent = new Intent(this, BienvenidosActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Elimina la pila de actividades
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+
     /**
      * Muestra un diálogo de confirmación para eliminar una receta.
      *

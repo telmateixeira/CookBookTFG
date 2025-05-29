@@ -1,9 +1,8 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Modelos;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.cookbooktfg.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,16 +7,16 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cookbooktfg.RecetaAdapter;
-import com.example.cookbooktfg.Receta;
+import com.example.cookbooktfg.R;
+import com.example.cookbooktfg.Modelos.Receta;
+import com.example.cookbooktfg.Modelos.RecetaAdapter;
+import com.example.cookbooktfg.Repositorio.RecetaRepositorio;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,8 +26,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 /**
  * Actividad que muestra el historial de recetas vistas recientemente por el usuario.

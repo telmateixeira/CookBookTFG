@@ -1,4 +1,7 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Utils;
+import com.example.cookbooktfg.Modelos.IngredienteModelo;
+import com.example.cookbooktfg.Modelos.InstruccionModelo;
+import com.example.cookbooktfg.Modelos.Receta;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentReference;

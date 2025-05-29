@@ -1,11 +1,10 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -13,8 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
+import com.example.cookbooktfg.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -29,7 +28,7 @@ public class LoginActivity extends AppCompatActivity{
 
     private EditText etEmail, etContraseña;
     private Button btnLogin;
-    private TextView tvRegister;
+    private TextView tvRegister, tvcontrasenaOlvidada;
     private ImageButton btnVolver;
     private FirebaseAuth auth;
 
@@ -66,6 +65,24 @@ public class LoginActivity extends AppCompatActivity{
         // Botón de Login
         btnLogin.setOnClickListener(v -> iniciarSesion());
 
+        tvcontrasenaOlvidada.setOnClickListener(v -> {
+            String email = etEmail.getText().toString().trim();
+
+            if (TextUtils.isEmpty(email)) {
+                etEmail.setError("Introduce tu correo para restablecer la contraseña");
+                etEmail.requestFocus();
+                return;
+            }
+
+            auth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(LoginActivity.this, "Correo de restablecimiento enviado", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Error al enviar el correo. Verifica el correo.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+        });
     }
     /**
      * Metodo que valida los campos de email y contraseña e intenta iniciar sesión con Firebase Authentication.

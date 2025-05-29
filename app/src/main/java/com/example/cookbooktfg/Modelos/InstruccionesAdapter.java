@@ -1,4 +1,4 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Modelos;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +34,7 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
     }
 
     private List<String> pasos;
-    final OnMoveListener moveListener;
+    public final OnMoveListener moveListener;
     private final OnEditListener editListener;
 
     /**

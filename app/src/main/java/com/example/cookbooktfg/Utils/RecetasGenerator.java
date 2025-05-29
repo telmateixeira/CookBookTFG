@@ -1,6 +1,11 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Utils;
 
 import android.util.Log;
+
+import com.example.cookbooktfg.BuildConfig;
+import com.example.cookbooktfg.Modelos.IngredienteModelo;
+import com.example.cookbooktfg.Modelos.InstruccionModelo;
+import com.example.cookbooktfg.Modelos.Receta;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
 import java.util.ArrayList;

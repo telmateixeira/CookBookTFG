@@ -1,4 +1,4 @@
-package com.example.cookbooktfg;
+package com.example.cookbooktfg.Utils;
 // SpoonacularClient.java
 
 import retrofit2.Retrofit;

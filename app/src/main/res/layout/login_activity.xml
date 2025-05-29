@@ -120,7 +120,17 @@
             android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Fondo degradado con botón -->
+    <TextView
+        android:id="@+id/tvForgotPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Has olvidado tu contraseña?"
+        android:textColor="@color/teal"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"/>
+
+
+    <!-- Fondo degradado con botón -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
