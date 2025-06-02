@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Utils;
+package com.example.cookbooktfg.utils;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -9,7 +9,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
-import com.example.cookbooktfg.Modelos.IngredienteModelo;
+import com.example.cookbooktfg.modelos.IngredienteModelo;
 
 import java.util.ArrayList;
 import java.util.HashMap;

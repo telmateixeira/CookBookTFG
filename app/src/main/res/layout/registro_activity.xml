@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:fillViewport="true"
     android:background="@color/white">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
     <!-- Encabezado superior con botón de volver e ir a login -->
 
     <RelativeLayout
@@ -169,7 +173,7 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="200dp"
         android:layout_marginTop="10dp"
         android:background="@drawable/vector2"
         android:rotation="180">
@@ -186,5 +190,5 @@
             android:textColor="@android:color/white"
             android:textSize="16sp" />
     </FrameLayout>
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>

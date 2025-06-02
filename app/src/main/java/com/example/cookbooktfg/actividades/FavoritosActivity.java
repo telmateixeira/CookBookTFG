@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Actividades;
+package com.example.cookbooktfg.actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cookbooktfg.R;
-import com.example.cookbooktfg.Modelos.Receta;
-import com.example.cookbooktfg.Modelos.RecetaAdapter;
-import com.example.cookbooktfg.Repositorio.RecetaRepositorio;
+import com.example.cookbooktfg.modelos.Receta;
+import com.example.cookbooktfg.modelos.RecetaAdapter;
+import com.example.cookbooktfg.repositorio.RecetaRepositorio;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;

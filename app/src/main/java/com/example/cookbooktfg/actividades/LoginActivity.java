@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Actividades;
+package com.example.cookbooktfg.actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -49,6 +49,7 @@ public class LoginActivity extends AppCompatActivity{
         btnLogin = findViewById(R.id.btnLogin);
         tvRegister = findViewById(R.id.tvRegister);
         btnVolver = findViewById(R.id.btnVolver);
+        tvcontrasenaOlvidada = findViewById(R.id.tvContrasenaOlvidada);
 
         btnVolver.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, BienvenidosActivity.class);

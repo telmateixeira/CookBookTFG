@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Actividades;
+package com.example.cookbooktfg.actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,13 +14,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cookbooktfg.Utils.FiltroIngredientes;
-import com.example.cookbooktfg.Modelos.IngredienteModelo;
+import com.example.cookbooktfg.utils.FiltroIngredientes;
+import com.example.cookbooktfg.modelos.IngredienteModelo;
 import com.example.cookbooktfg.R;
-import com.example.cookbooktfg.Modelos.Receta;
-import com.example.cookbooktfg.Modelos.RecetaAdapter;
-import com.example.cookbooktfg.Repositorio.RecetaRepositorio;
-import com.example.cookbooktfg.Utils.RecetasGenerator;
+import com.example.cookbooktfg.modelos.Receta;
+import com.example.cookbooktfg.modelos.RecetaAdapter;
+import com.example.cookbooktfg.repositorio.RecetaRepositorio;
+import com.example.cookbooktfg.utils.RecetasGenerator;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -161,8 +161,6 @@ public class MenuPrincipalActivity extends AppCompatActivity {
 
             });
         });
-
-
     }
     /**
      * Configura el menú de navegación inferior y gestiona el cambio de actividad.

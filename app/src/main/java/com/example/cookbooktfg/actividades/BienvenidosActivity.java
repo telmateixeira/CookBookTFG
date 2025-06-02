@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Actividades;
+package com.example.cookbooktfg.actividades;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,7 +29,6 @@ public class BienvenidosActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // Verificar si ya hay un usuario autenticado
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {

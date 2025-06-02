@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/white"
-    tools:context=".Actividades.AjustesUserActivity">
+    tools:context=".actividades.AjustesUserActivity">
     <!-- Contenedor principal -->
     <LinearLayout
         android:layout_width="match_parent"

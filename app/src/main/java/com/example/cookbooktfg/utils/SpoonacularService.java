@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Utils;
+package com.example.cookbooktfg.utils;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

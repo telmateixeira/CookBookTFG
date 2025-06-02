@@ -1,8 +1,8 @@
-package com.example.cookbooktfg.Repositorio;
+package com.example.cookbooktfg.repositorio;
 
 import android.util.Log;
 
-import com.example.cookbooktfg.Modelos.Receta;
+import com.example.cookbooktfg.modelos.Receta;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -33,11 +33,8 @@ public class RecetaRepositorio {
      */
     public static void obtenerTodasLasRecetas(Consumer<List<Receta>> callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("recetas")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+        db.collection("recetas").get().addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Receta> recetas = new ArrayList<>();
-
                     // Convertir cada documento a objeto Receta
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Receta receta = doc.toObject(Receta.class);
@@ -51,13 +48,9 @@ public class RecetaRepositorio {
                         return;
                     }
                     // Obtener lista de recetas favoritas del usuario
-                    db.collection("usuarios")
-                            .document(user.getUid())
-                            .get()
-                            .addOnSuccessListener(userDoc -> {
+                    db.collection("usuarios").document(user.getUid()).get().addOnSuccessListener(userDoc -> {
                                 List<DocumentReference> favoritas = (List<DocumentReference>) userDoc.get("favoritos");
                                 Set<String> favoritasIds = new HashSet<>();
-
                                 if (favoritas != null) {
                                     for (DocumentReference ref : favoritas) {
                                         favoritasIds.add(ref.getId());
@@ -67,7 +60,6 @@ public class RecetaRepositorio {
                                 for (Receta receta : recetas) {
                                     receta.setFavorito(favoritasIds.contains(receta.getId()));
                                 }
-
                                 callback.accept(recetas);
                             })
                             .addOnFailureListener(e -> {

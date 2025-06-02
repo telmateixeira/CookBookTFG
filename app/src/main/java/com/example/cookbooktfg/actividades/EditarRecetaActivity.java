@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Actividades;
+package com.example.cookbooktfg.actividades;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -14,10 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.cookbooktfg.Modelos.IngredienteModelo;
-import com.example.cookbooktfg.Modelos.InstruccionesAdapter;
+import com.example.cookbooktfg.modelos.IngredienteModelo;
+import com.example.cookbooktfg.modelos.InstruccionesAdapter;
 import com.example.cookbooktfg.R;
-import com.example.cookbooktfg.Modelos.Receta;
+import com.example.cookbooktfg.modelos.Receta;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;

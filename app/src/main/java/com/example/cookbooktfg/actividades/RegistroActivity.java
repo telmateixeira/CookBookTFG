@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Actividades;
+package com.example.cookbooktfg.actividades;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -197,6 +197,8 @@ public class RegistroActivity extends AppCompatActivity {
                                     .addOnSuccessListener(aVoid -> {
                                         if (imagenUri != null) {
                                             subirImagenYRegistrar(uid, nombre, email, progressDialog);
+                                            startActivity(new Intent(RegistroActivity.this, LoginActivity.class));
+                                            finish();
                                         } else {
                                             progressDialog.dismiss();
                                             Toast.makeText(RegistroActivity.this, "Registro exitoso. Inicia sesión para continuar", Toast.LENGTH_SHORT).show();

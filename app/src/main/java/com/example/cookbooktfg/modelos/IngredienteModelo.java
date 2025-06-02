@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Modelos;
+package com.example.cookbooktfg.modelos;
 
 /**
  * Clase modelo que representa un ingrediente dentro de una receta.

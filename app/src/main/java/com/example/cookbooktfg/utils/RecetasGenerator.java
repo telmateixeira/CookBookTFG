@@ -1,11 +1,11 @@
-package com.example.cookbooktfg.Utils;
+package com.example.cookbooktfg.utils;
 
 import android.util.Log;
 
 import com.example.cookbooktfg.BuildConfig;
-import com.example.cookbooktfg.Modelos.IngredienteModelo;
-import com.example.cookbooktfg.Modelos.InstruccionModelo;
-import com.example.cookbooktfg.Modelos.Receta;
+import com.example.cookbooktfg.modelos.IngredienteModelo;
+import com.example.cookbooktfg.modelos.InstruccionModelo;
+import com.example.cookbooktfg.modelos.Receta;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
 import java.util.ArrayList;
@@ -154,7 +154,11 @@ public class RecetasGenerator {
 
         List<String> imagenes = new ArrayList<>();
         if (apiReceta.getImage() != null) {
-            imagenes.add(apiReceta.getImage());
+            String imageUrl = apiReceta.getImage();
+            if (imageUrl != null && imageUrl.endsWith(".")) {
+                imageUrl = imageUrl.substring(0, imageUrl.length() - 1);
+                imagenes.add(imageUrl);
+            }
         }
         receta.setImagenes(imagenes);
 

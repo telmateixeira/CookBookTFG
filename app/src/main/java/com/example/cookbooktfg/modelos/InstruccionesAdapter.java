@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Modelos;
+package com.example.cookbooktfg.modelos;
 
 import android.view.LayoutInflater;
 import android.view.View;

@@ -1,4 +1,4 @@
-package com.example.cookbooktfg.Modelos;
+package com.example.cookbooktfg.modelos;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.Exclude;
