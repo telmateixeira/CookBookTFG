@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
@@ -79,7 +80,6 @@ public class EditarRecetaActivity extends AppCompatActivity {
         }
 
         inicializarVistas();
-        configurarRecycler();
         cargarRecetaDesdeFirestore();
         cargarSugerenciasIngredientes();
 
@@ -127,32 +127,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
                     .setNegativeButton("Cancelar", null)
                     .show();
         });
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
-                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
-                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView,
-                                  @NonNull RecyclerView.ViewHolder viewHolder,
-                                  @NonNull RecyclerView.ViewHolder target) {
-                int fromPos = viewHolder.getAdapterPosition();
-                int toPos = target.getAdapterPosition();
-                Collections.swap(listaPasos, fromPos, toPos);
-                instruccionesAdapter.notifyItemMoved(fromPos, toPos);
-                return true;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                listaPasos.remove(position);
-                instruccionesAdapter.notifyItemRemoved(position);
-            }
-        });
-
-        itemTouchHelper.attachToRecyclerView(rvInstrucciones);
-    }
+  }
 
     /**
      * Inicializa los componentes de la interfaz de usuario y adapta la dificultad.
@@ -180,6 +155,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
                 android.R.layout.simple_dropdown_item_1line,
                 new String[]{"Fácil", "Media", "Difícil"}
         ));
+        configurarRecycler();
     }
     /**
      * Carga los datos de la receta desde Firestore y actualiza los campos de la UI.
@@ -248,12 +224,33 @@ public class EditarRecetaActivity extends AppCompatActivity {
 
         listaPasos.clear();
         if (receta.getInstrucciones() != null) {
-            for (DocumentReference ref : receta.getInstrucciones()) {
-                ref.get().addOnSuccessListener(doc -> {
-                    String paso = doc.getString("paso");
+            // Ordena las instrucciones antes de cargarlas
+            List<DocumentReference> instruccionesOrdenadas = new ArrayList<>(receta.getInstrucciones());
+            Collections.sort(instruccionesOrdenadas, (ref1, ref2) -> {
+                return instruccionesOrdenadas.indexOf(ref1) - instruccionesOrdenadas.indexOf(ref2);
+            });
+
+            AtomicInteger contador = new AtomicInteger(0);
+            for (DocumentReference ref : instruccionesOrdenadas) {
+                final int posicion = contador.getAndIncrement();
+                ref.get().addOnSuccessListener(documentSnapshot -> {
+                    String paso = documentSnapshot.getString("paso");
                     if (paso != null) {
-                        listaPasos.add(paso);
-                        instruccionesAdapter.notifyItemInserted(listaPasos.size() - 1);
+                        while (listaPasos.size() <= posicion) {
+                            listaPasos.add("");
+                        }
+                        listaPasos.set(posicion, paso);
+                    }
+                    if (contador.get() == receta.getInstrucciones().size()) {
+                        runOnUiThread(() -> {
+                            instruccionesAdapter.notifyDataSetChanged();
+                            Log.d("Receta", "Pasos cargados: " + listaPasos.size());
+                        });
+                    }
+                }).addOnFailureListener(e -> {
+                    Log.e("Receta", "Error cargando paso", e);
+                    if (contador.get() == receta.getInstrucciones().size()) {
+                        runOnUiThread(() -> instruccionesAdapter.notifyDataSetChanged());
                     }
                 });
             }
@@ -435,7 +432,8 @@ public class EditarRecetaActivity extends AppCompatActivity {
      * Configura el RecyclerView para mostrar la lista de instrucciones.
      */
     private void configurarRecycler() {
-        instruccionesAdapter = new InstruccionesAdapter(listaPasos,
+        instruccionesAdapter = new InstruccionesAdapter(
+                listaPasos,
                 (fromPosition, toPosition) -> {
                     Collections.swap(listaPasos, fromPosition, toPosition);
                     instruccionesAdapter.notifyItemMoved(fromPosition, toPosition);
@@ -444,15 +442,23 @@ public class EditarRecetaActivity extends AppCompatActivity {
                     String pasoActual = listaPasos.get(position);
                     EditText editText = new EditText(EditarRecetaActivity.this);
                     editText.setText(pasoActual);
+                    editText.setSelection(pasoActual.length());
 
                     new AlertDialog.Builder(EditarRecetaActivity.this)
                             .setTitle("Editar paso")
                             .setView(editText)
                             .setPositiveButton("Guardar", (dialog, which) -> {
                                 String nuevoPaso = editText.getText().toString().trim();
-                                if (!nuevoPaso.isEmpty()) {
-                                    listaPasos.set(position, nuevoPaso);
-                                    instruccionesAdapter.notifyItemChanged(position);
+                                if (!nuevoPaso.isEmpty() && !nuevoPaso.equals(pasoActual)) {
+                                    actualizarPasoEnFirestore(position, nuevoPaso, () -> {
+                                        // Actualiza la lista local y UI después de guardar en Firestore
+                                        listaPasos.set(position, nuevoPaso);
+                                        runOnUiThread(() -> {
+                                            instruccionesAdapter.notifyItemChanged(position);
+                                            Toast.makeText(EditarRecetaActivity.this,
+                                                    "Paso actualizado", Toast.LENGTH_SHORT).show();
+                                        });
+                                    });
                                 }
                             })
                             .setNegativeButton("Cancelar", null)
@@ -461,8 +467,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
 
         rvInstrucciones.setLayoutManager(new LinearLayoutManager(this));
         rvInstrucciones.setAdapter(instruccionesAdapter);
+        rvInstrucciones.setItemAnimator(null);
 
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
                 ItemTouchHelper.UP | ItemTouchHelper.DOWN,
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
@@ -472,8 +479,9 @@ public class EditarRecetaActivity extends AppCompatActivity {
                                   @NonNull RecyclerView.ViewHolder target) {
                 int fromPos = viewHolder.getAdapterPosition();
                 int toPos = target.getAdapterPosition();
-                Collections.swap(listaPasos, fromPos, toPos);
-                instruccionesAdapter.notifyItemMoved(fromPos, toPos);
+                if (instruccionesAdapter.moveListener != null) {
+                    instruccionesAdapter.moveListener.onItemMove(fromPos, toPos);
+                }
                 return true;
             }
 
@@ -483,7 +491,32 @@ public class EditarRecetaActivity extends AppCompatActivity {
                 listaPasos.remove(position);
                 instruccionesAdapter.notifyItemRemoved(position);
             }
-        }).attachToRecyclerView(rvInstrucciones);
+        });
+        itemTouchHelper.attachToRecyclerView(rvInstrucciones);
+    }
+    /**
+     * Actualiza el contenido de un paso de instrucción específico en Firestore.
+     */
+    private void actualizarPasoEnFirestore(int position, String nuevoPaso, Runnable onComplete) {
+        if (receta == null || receta.getInstrucciones() == null ||
+                position >= receta.getInstrucciones().size()) {
+            return;
+        }
+
+        DocumentReference pasoRef = receta.getInstrucciones().get(position);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("paso", nuevoPaso);
+        updates.put("orden", position + 1);
+
+        pasoRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Paso actualizado correctamente");
+                    if (onComplete != null) onComplete.run();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error al actualizar paso", e);
+                    Toast.makeText(this, "Error al guardar el paso", Toast.LENGTH_SHORT).show();
+                });
     }
 
     /**
@@ -538,6 +571,35 @@ public class EditarRecetaActivity extends AppCompatActivity {
                             });
                 }
             });
+        }
+    }
+    /**
+     * Metodo del ciclo de vida de la Activity que se ejecuta cuando la actividad va a comenzar
+     * a interactuar con el usuario. Se sobrescribe para asegurar que los pasos de la receta
+     * estén siempre actualizados cuando el usuario vuelve a esta pantalla.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (receta != null) {
+            cargarPasosDesdeFirestore();
+        }
+    }
+    /**
+     * Carga asíncronamente los pasos de preparación desde Firestore y actualiza la UI.
+     */
+    private void cargarPasosDesdeFirestore() {
+        listaPasos.clear();
+        if (receta.getInstrucciones() != null) {
+            for (DocumentReference ref : receta.getInstrucciones()) {
+                ref.get().addOnSuccessListener(documentSnapshot -> {
+                    String paso = documentSnapshot.getString("paso");
+                    if (paso != null) {
+                        listaPasos.add(paso);
+                        instruccionesAdapter.notifyItemInserted(listaPasos.size() - 1);
+                    }
+                });
+            }
         }
     }
 }

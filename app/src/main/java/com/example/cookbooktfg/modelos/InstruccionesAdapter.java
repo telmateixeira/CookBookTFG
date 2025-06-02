@@ -8,6 +8,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cookbooktfg.R;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,7 +48,7 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
      * @param editListener Listener para eventos de edición (clic).
      */
     public InstruccionesAdapter(List<String> pasos, OnMoveListener moveListener, OnEditListener editListener) {
-        this.pasos = pasos;
+        this.pasos = pasos != null ? pasos : new ArrayList<>();
         this.moveListener = moveListener;
         this.editListener = editListener;
     }
@@ -56,7 +59,7 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View vista = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
+        View vista = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_paso, parent, false);
         return new ViewHolder(vista);
     }
     /**
@@ -67,9 +70,12 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
      */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.text.setText((position + 1) + ". " + pasos.get(position));
+        String paso = pasos.get(position);
+        holder.tvNumero.setText(String.valueOf(position + 1));
+        holder.tvPaso.setText(paso);
+
         holder.itemView.setOnClickListener(v -> {
-            if (editListener != null) {
+            if (editListener != null && holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
                 editListener.onEditClick(holder.getAdapterPosition());
             }
         });
@@ -82,15 +88,21 @@ public class InstruccionesAdapter extends RecyclerView.Adapter<InstruccionesAdap
         return pasos.size();
     }
 
+    public void actualizarPasos(List<String> nuevosPasos) {
+        this.pasos = nuevosPasos != null ? nuevosPasos : new ArrayList<>();
+        notifyDataSetChanged();
+    }
 
     /**
      * ViewHolder que representa cada ítem (paso) del RecyclerView.
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView text;
+        TextView tvNumero;
+        TextView tvPaso;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            text = itemView.findViewById(android.R.id.text1);
+            tvNumero = itemView.findViewById(R.id.tvNumero);
+            tvPaso = itemView.findViewById(R.id.tvPaso);
         }
     }
 }
