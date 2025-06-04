@@ -25,6 +25,7 @@ public class Receta {
     private Date fechaCreacion;
     private List<String> imagenes;
     private List<DocumentReference> ingredientes;
+    @Exclude
     private transient List<String> nombresIngredientes; // transient para que no se guarde en Firestore
     private List<DocumentReference> instrucciones;
     private boolean favorito;
