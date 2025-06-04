@@ -61,14 +61,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="200dp" />
 
-                <ImageView
-                    android:id="@+id/detalleImagen"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/placeholder"
-                    android:contentDescription="Imagen receta"
-                    android:scaleType="centerCrop" />
+                <LinearLayout
+                    android:id="@+id/layoutIndicadores"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/viewPager"
+                    android:layout_centerHorizontal="true"
+                    android:orientation="horizontal"
+                    android:padding="8dp"/>
             </androidx.cardview.widget.CardView>
 
             <!-- Datos autor/dificultad/tiempo -->

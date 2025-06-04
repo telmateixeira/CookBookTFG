@@ -190,15 +190,13 @@ public class RegistroActivity extends AppCompatActivity {
                             userMap.put("email", email);
                             userMap.put("fechaRegistro", FieldValue.serverTimestamp());
                             userMap.put("favoritos", new ArrayList<String>());
-                            userMap.put("recetasCreadas", new ArrayList<String>());
 
                             db.collection("usuarios").document(uid)
                                     .set(userMap)
                                     .addOnSuccessListener(aVoid -> {
                                         if (imagenUri != null) {
                                             subirImagenYRegistrar(uid, nombre, email, progressDialog);
-                                            startActivity(new Intent(RegistroActivity.this, LoginActivity.class));
-                                            finish();
+
                                         } else {
                                             progressDialog.dismiss();
                                             Toast.makeText(RegistroActivity.this, "Registro exitoso. Inicia sesión para continuar", Toast.LENGTH_SHORT).show();

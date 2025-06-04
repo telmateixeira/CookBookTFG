@@ -31,23 +31,21 @@ public class RecetaRepositorio {
      * @param callback Función que recibe la lista de recetas obtenidas.
      *                 Puede ser una lista vacía si ocurre algún error.
      */
+
     public static void obtenerTodasLasRecetas(Consumer<List<Receta>> callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("recetas").get().addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Receta> recetas = new ArrayList<>();
-                    // Convertir cada documento a objeto Receta
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Receta receta = doc.toObject(Receta.class);
                         receta.setId(doc.getId());
                         recetas.add(receta);
                     }
-                    // Obtener usuario actual para marcar favoritos
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                     if (user == null) {
                         callback.accept(recetas);
                         return;
                     }
-                    // Obtener lista de recetas favoritas del usuario
                     db.collection("usuarios").document(user.getUid()).get().addOnSuccessListener(userDoc -> {
                                 List<DocumentReference> favoritas = (List<DocumentReference>) userDoc.get("favoritos");
                                 Set<String> favoritasIds = new HashSet<>();
@@ -56,7 +54,6 @@ public class RecetaRepositorio {
                                         favoritasIds.add(ref.getId());
                                     }
                                 }
-                                // Marcar como favorito cada receta que esté en la lista de favoritos
                                 for (Receta receta : recetas) {
                                     receta.setFavorito(favoritasIds.contains(receta.getId()));
                                 }

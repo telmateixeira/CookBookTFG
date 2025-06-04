@@ -4,14 +4,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
+import com.example.cookbooktfg.modelos.ImagenesAdapter;
 import com.example.cookbooktfg.modelos.IngredientesAdapter;
 import com.example.cookbooktfg.modelos.InstruccionModelo;
 import com.example.cookbooktfg.R;
@@ -39,7 +43,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DetalleRecetaActivity extends AppCompatActivity {
 
     private TextView titulo, autor, dificultad, duracion, descripcion, instrucciones;
-    private ImageView imagen;
+    // Agrega estas variables como miembros de la clase
+    private ViewPager2 viewPagerImagenes;
+    private LinearLayout layoutIndicadores;
+    private ImagenesAdapter imagenesAdapter;
     private ImageButton btnVolver;
     private IngredientesAdapter adapter;
     private RecyclerView rvingredientes;
@@ -62,7 +69,8 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         rvingredientes = findViewById(R.id.rvIngredientes);
         rvingredientes.setLayoutManager(new LinearLayoutManager(this));
         instrucciones = findViewById(R.id.detalleInstrucciones);
-        imagen = findViewById(R.id.detalleImagen);
+        viewPagerImagenes = findViewById(R.id.viewPager);
+        layoutIndicadores = findViewById(R.id.layoutIndicadores);
         btnVolver = findViewById(R.id.btnVolver);
 
         btnVolver.setOnClickListener(v -> finish());
@@ -111,15 +119,14 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         dificultad.setText(document.getString("dificultad"));
         duracion.setText(document.getString("duracion") + " min");
 
-        // Cargar imagenes con Glide
         List<String> imagenesUrls = (List<String>) document.get("imagenes");
         if (imagenesUrls != null && !imagenesUrls.isEmpty()) {
-            Glide.with(this)
-                    .load(imagenesUrls.get(0))
-                    .placeholder(R.drawable.placeholder)
-                    .into(imagen);
+            setupViewPager(imagenesUrls);
         } else {
-            imagen.setImageResource(R.drawable.placeholder);
+            // Si no hay imágenes, mostrar placeholder en el ViewPager
+            List<String> placeholderList = new ArrayList<>();
+            placeholderList.add("placeholder");
+            setupViewPager(placeholderList);
         }
         // Cargar autor
         String creadorId = document.getString("creadorId");
@@ -151,6 +158,17 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Configura el ViewPager con un adaptador que muestra una lista de imágenes.
+     *
+     * @param imagenesUrls Lista de URLs que se mostrarán en el ViewPager.
+     */
+    private void setupViewPager(List<String> imagenesUrls) {
+        imagenesAdapter = new ImagenesAdapter(imagenesUrls);
+        viewPagerImagenes.setAdapter(imagenesAdapter);
+    }
+
     /**
      * Carga y muestra el nombre del autor a partir del ID del usuario.
      *

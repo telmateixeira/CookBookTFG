@@ -1,15 +1,23 @@
 package com.example.cookbooktfg.actividades;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,15 +35,19 @@ import com.google.firebase.firestore.*;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
 /**
- *  Esta actividad permite a los usuarios editar una receta ya existente en Firestore,
- *  incluyendo el nombre, descripción, duración, dificultad, ingredientes, pasos de preparación
- *  e imágenes asociadas.
- *
- *  Autor: Telma Teixeira
- *  Proyecto: CookbookTFG
+ * Esta actividad permite a los usuarios editar una receta ya existente en Firestore,
+ * incluyendo el nombre, descripción, duración, dificultad, ingredientes, pasos de preparación
+ * e imágenes asociadas.
+ * <p>
+ * Autor: Telma Teixeira
+ * Proyecto: CookbookTFG
  */
 public class EditarRecetaActivity extends AppCompatActivity {
 
@@ -54,6 +66,11 @@ public class EditarRecetaActivity extends AppCompatActivity {
     private List<Uri> imagenesSeleccionadasNuevas = new ArrayList<>();
     private List<String> urlsImagenesOriginales = new ArrayList<>();
     private List<String> urlsImagenesEliminadas = new ArrayList<>();
+    private static final int REQUEST_IMAGE_CAPTURE = 101;
+    private static final int REQUEST_IMAGE_GALLERY = 102;
+    private static final int PERMISSION_REQUEST_CODE = 200;
+    private String imagenTemp; // Para guardar la ruta temporal de la foto
+    private Uri imagenUri; // Para guardar el URI de la foto tomada
 
     private Map<String, DocumentReference> referenciaMap = new HashMap<>();
     private ArrayAdapter<String> adapter;
@@ -62,6 +79,8 @@ public class EditarRecetaActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String recetaId;
     private Receta receta;
+
+    private boolean esperandoPermisos = false;
 
     /**
      * Metodo llamado al crear la actividad. Inicializa vistas, configura eventos y carga datos.
@@ -102,32 +121,12 @@ public class EditarRecetaActivity extends AppCompatActivity {
         });
 
         btnAgregarIngrediente.setOnClickListener(v -> agregarIngrediente());
-        btnSeleccionarImagenes.setOnClickListener(v -> abrirGaleria());
+        btnSeleccionarImagenes.setOnClickListener(v -> verificarYPedirPermisos());
         btnVolver.setOnClickListener(v -> finish());
         btnActualizar.setOnClickListener(v -> guardarCambios());
 
-        instruccionesAdapter = new InstruccionesAdapter(listaPasos, (from, to) -> {
-            Collections.swap(listaPasos, from, to);
-            instruccionesAdapter.notifyItemMoved(from, to);
-        }, position -> {
-            String pasoActual = listaPasos.get(position);
-            EditText editText = new EditText(this);
-            editText.setText(pasoActual);
 
-            new AlertDialog.Builder(this)
-                    .setTitle("Editar paso")
-                    .setView(editText)
-                    .setPositiveButton("Guardar", (dialog, which) -> {
-                        String nuevoPaso = editText.getText().toString().trim();
-                        if (!nuevoPaso.isEmpty()) {
-                            listaPasos.set(position, nuevoPaso);
-                            instruccionesAdapter.notifyItemChanged(position);
-                        }
-                    })
-                    .setNegativeButton("Cancelar", null)
-                    .show();
-        });
-  }
+    }
 
     /**
      * Inicializa los componentes de la interfaz de usuario y adapta la dificultad.
@@ -157,6 +156,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
         ));
         configurarRecycler();
     }
+
     /**
      * Carga los datos de la receta desde Firestore y actualiza los campos de la UI.
      */
@@ -170,6 +170,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
                     }
                 });
     }
+
     /**
      * Rellena los campos de la UI con la información de la receta cargada.
      */
@@ -224,38 +225,26 @@ public class EditarRecetaActivity extends AppCompatActivity {
 
         listaPasos.clear();
         if (receta.getInstrucciones() != null) {
-            // Ordena las instrucciones antes de cargarlas
-            List<DocumentReference> instruccionesOrdenadas = new ArrayList<>(receta.getInstrucciones());
-            Collections.sort(instruccionesOrdenadas, (ref1, ref2) -> {
-                return instruccionesOrdenadas.indexOf(ref1) - instruccionesOrdenadas.indexOf(ref2);
-            });
-
             AtomicInteger contador = new AtomicInteger(0);
-            for (DocumentReference ref : instruccionesOrdenadas) {
-                final int posicion = contador.getAndIncrement();
+            int totalPasos = receta.getInstrucciones().size();
+
+            for (DocumentReference ref : receta.getInstrucciones()) {
                 ref.get().addOnSuccessListener(documentSnapshot -> {
                     String paso = documentSnapshot.getString("paso");
                     if (paso != null) {
-                        while (listaPasos.size() <= posicion) {
-                            listaPasos.add("");
-                        }
-                        listaPasos.set(posicion, paso);
+                        listaPasos.add(paso);
                     }
-                    if (contador.get() == receta.getInstrucciones().size()) {
+
+                    if (contador.incrementAndGet() == totalPasos) {
                         runOnUiThread(() -> {
                             instruccionesAdapter.notifyDataSetChanged();
-                            Log.d("Receta", "Pasos cargados: " + listaPasos.size());
                         });
-                    }
-                }).addOnFailureListener(e -> {
-                    Log.e("Receta", "Error cargando paso", e);
-                    if (contador.get() == receta.getInstrucciones().size()) {
-                        runOnUiThread(() -> instruccionesAdapter.notifyDataSetChanged());
                     }
                 });
             }
         }
     }
+
     /**
      * Agrega un nuevo ingrediente o reutiliza uno existente según el input del usuario.
      */
@@ -293,6 +282,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
         autoNombreIng.setText("");
         etCantidad.setText("");
     }
+
     /**
      * Crea y añade un chip visual en el ChipGroup para un ingrediente dado.
      *
@@ -306,6 +296,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
         chip.setOnCloseIconClickListener(v -> chipGroupIngredientes.removeView(chip));
         chipGroupIngredientes.addView(chip);
     }
+
     /**
      * Carga sugerencias de ingredientes ya existentes desde Firestore
      * para autocompletado.
@@ -328,46 +319,316 @@ public class EditarRecetaActivity extends AppCompatActivity {
             autoTipoIng.setAdapter(adapter);
         });
     }
+
+
+    /**
+     * Verifica si los permisos necesarios están otorgados. Si no, los solicita.
+     */
+    private void verificarYPedirPermisos() {
+        if (esperandoPermisos) return;
+
+        List<String> permisosNecesarios = new ArrayList<>();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            permisosNecesarios.add(Manifest.permission.CAMERA);
+        }
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                permisosNecesarios.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        }
+
+        if (!permisosNecesarios.isEmpty()) {
+            esperandoPermisos = true;
+            ActivityCompat.requestPermissions(this,
+                    permisosNecesarios.toArray(new String[0]),
+                    PERMISSION_REQUEST_CODE);
+        } else {
+            mostrarDialogoSeleccionImagen();
+        }
+    }
+
+    /**
+     * Muestra el diálogo que permite elegir entre tomar una foto o seleccionar una imagen.
+     */
+    private void mostrarDialogoSeleccionImagen() {
+        new AlertDialog.Builder(this)
+                .setTitle("Agregar imágenes")
+                .setItems(new CharSequence[]{"Tomar foto", "Desde galería"}, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Cámara
+                            abrirCamara();
+                            break;
+                        case 1: // Galería
+                            abrirGaleria();
+                            break;
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Abre la cámara para tomar una foto.
+     */
+    private void abrirCamara() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = crearArchivoImagen();
+            } catch (IOException ex) {
+                Toast.makeText(this, "Error al crear archivo", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (photoFile != null) {
+                imagenUri = FileProvider.getUriForFile(this,
+                        "com.example.cookbooktfg.fileprovider", // Usa tu package name + ".fileprovider"
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imagenUri);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    /**
+     * Crea un archivo temporal donde se almacenará la foto tomada.
+     */
+    private File crearArchivoImagen() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (storageDir == null) {
+            throw new IOException("Directorio no disponible");
+        }
+
+        File image = File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+        );
+        imagenTemp = image.getAbsolutePath();
+        return image;
+    }
+
     /**
      * Abre la galería para que el usuario seleccione imágenes desde el dispositivo.
      */
     private void abrirGaleria() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        Intent intent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        } else {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+        }
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Selecciona imágenes"), 101);
+        startActivityForResult(Intent.createChooser(intent, "Selecciona imágenes"), REQUEST_IMAGE_GALLERY);
     }
+
     /**
      * Procesa el resultado de la selección de imágenes desde la galería.
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 101 && resultCode == RESULT_OK) {
-            if (data.getClipData() != null) {
-                int total = data.getClipData().getItemCount();
-                for (int i = 0; i < total; i++) {
-                    Uri uri = data.getClipData().getItemAt(i).getUri();
-                    imagenesSeleccionadasNuevas.add(uri);
-                    mostrarMiniatura(uri);
-                }
-            } else if (data.getData() != null) {
-                Uri uri = data.getData();
-                imagenesSeleccionadasNuevas.add(uri);
-                mostrarMiniatura(uri);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_IMAGE_GALLERY:
+                    if (data != null) {
+                        if (data.getClipData() != null) {
+                            int count = data.getClipData().getItemCount();
+                            for (int i = 0; i < count; i++) {
+                                Uri imageUri = data.getClipData().getItemAt(i).getUri();
+                                getContentResolver().takePersistableUriPermission(
+                                        imageUri,
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                agregarImagen(imageUri);
+                            }
+                        } else if (data.getData() != null) {
+                            Uri imageUri = data.getData();
+                            getContentResolver().takePersistableUriPermission(
+                                    imageUri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            agregarImagen(imageUri);
+                        }
+                    }
+                    break;
+                case REQUEST_IMAGE_CAPTURE:
+                    if (imagenUri != null) {
+                        agregarImagen(imagenUri);
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Agrega una imagen visualmente a un contenedor y la almacena en una lista para luego subirla.
+     *
+     * @param uri la url de la imagen seleccionada por el usuario.
+     */
+    private void agregarImagen(Uri uri) {
+        imagenesSeleccionadasNuevas.add(uri); // Guarda la Uri para subirla luego
+
+        ImageView imageView = new ImageView(this);
+        imageView.setLayoutParams(new LinearLayout.LayoutParams(250, 250));
+        imageView.setPadding(8, 8, 8, 8);
+
+        Glide.with(this)
+                .load(uri)
+                .override(250, 250)
+                .centerCrop()
+                .into(imageView);
+
+        // Eliminar
+        imageView.setOnLongClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Eliminar imagen")
+                    .setMessage("¿Eliminar esta imagen?")
+                    .setPositiveButton("Sí", (dialog, which) -> {
+                        contenedorImagenes.removeView(imageView);
+                        imagenesSeleccionadasNuevas.remove(uri);
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+            return true;
+        });
+
+        contenedorImagenes.addView(imageView);
+    }
+
+    /**
+     * * Callback que se ejecuta cuando el usuario responde a la solicitud de permisos.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            esperandoPermisos = false;
+
+            if (grantResults.length > 0 && allPermissionsGranted(grantResults)) {
+                mostrarDialogoSeleccionImagen();
+            } else {
+                Toast.makeText(this, "Se requieren permisos para continuar", Toast.LENGTH_SHORT).show();
             }
         }
     }
     /**
-     * Permite ajustar la imagen para verla mas pequeña en la actividad
+     * * Verifica si todos los permisos solicitados fueron concedidos.
      */
-    private void mostrarMiniatura(Uri uri) {
-        ImageView iv = new ImageView(this);
-        iv.setLayoutParams(new LinearLayout.LayoutParams(250, 250));
-        iv.setPadding(8, 8, 8, 8);
-        iv.setImageURI(uri);
-        contenedorImagenes.addView(iv);
+    private boolean allPermissionsGranted(int[] results) {
+        for (int result : results) {
+            if (result != PackageManager.PERMISSION_GRANTED) return false;
+        }
+        return true;
     }
+
+
+    /**
+     * Configura el RecyclerView para mostrar la lista de instrucciones
+     */
+    private void configurarRecycler() {
+        // Inicialización única del Adapter
+        instruccionesAdapter = new InstruccionesAdapter(
+                listaPasos,
+                (fromPosition, toPosition) -> {
+                    // Lógica para mover pasos
+                    Collections.swap(listaPasos, fromPosition, toPosition);
+                    instruccionesAdapter.notifyItemMoved(fromPosition, toPosition);
+                    actualizarOrdenEnFirestore(); // Actualiza el orden en Firestore
+                },
+                position -> {
+                    // Lógica para editar pasos
+                    mostrarDialogoEdicionPaso(position);
+                });
+
+        // Configuración del RecyclerView
+        rvInstrucciones.setLayoutManager(new LinearLayoutManager(this));
+        rvInstrucciones.setAdapter(instruccionesAdapter);
+        rvInstrucciones.setItemAnimator(null);
+
+        // Configuración del ItemTouchHelper para drag & drop y swipe
+        configurarTouchHelper();
+    }
+
+    /**
+     * Muestra diálogo para editar un paso específico
+     */
+    private void mostrarDialogoEdicionPaso(int position) {
+        String pasoActual = listaPasos.get(position);
+        EditText editText = new EditText(this);
+        editText.setText(pasoActual);
+        editText.setSelection(pasoActual.length());
+
+        new AlertDialog.Builder(this)
+                .setTitle("Editar paso")
+                .setView(editText)
+                .setPositiveButton("Guardar", (dialog, which) -> {
+                    String nuevoPaso = editText.getText().toString().trim();
+                    if (!nuevoPaso.isEmpty() && !nuevoPaso.equals(pasoActual)) {
+                        actualizarPasoEnFirestore(position, nuevoPaso, () -> {
+                            listaPasos.set(position, nuevoPaso);
+                            runOnUiThread(() -> {
+                                instruccionesAdapter.notifyItemChanged(position);
+                                Toast.makeText(this, "Paso actualizado", Toast.LENGTH_SHORT).show();
+                            });
+                        });
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    /**
+     * Configura el ItemTouchHelper para manejar movimientos y deslizamientos
+     */
+    private void configurarTouchHelper() {
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                int fromPos = viewHolder.getAdapterPosition();
+                int toPos = target.getAdapterPosition();
+                instruccionesAdapter.moveListener.onItemMove(fromPos, toPos);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                new AlertDialog.Builder(EditarRecetaActivity.this)
+                        .setTitle("Eliminar paso")
+                        .setMessage("¿Estás seguro de eliminar este paso?")
+                        .setPositiveButton("Eliminar", (dialog, which) -> {
+                            eliminarPasoDeFirestore(position, () -> {
+                                listaPasos.remove(position);
+                                runOnUiThread(() -> {
+                                    instruccionesAdapter.notifyItemRemoved(position);
+                                    Toast.makeText(EditarRecetaActivity.this,
+                                            "Paso eliminado", Toast.LENGTH_SHORT).show();
+                                });
+                            });
+                        })
+                        .setNegativeButton("Cancelar", (dialog, which) -> {
+                            instruccionesAdapter.notifyItemChanged(position);
+                        })
+                        .show();
+            }
+        });
+        itemTouchHelper.attachToRecyclerView(rvInstrucciones);
+    }
+
     /**
      * Guarda los cambios realizados en la receta en Firestore y Firebase Storage.
      */
@@ -405,6 +666,7 @@ public class EditarRecetaActivity extends AppCompatActivity {
             }
         }
     }
+
     /**
      * Elimina de Firebase Storage todas las imágenes cuya URL está listada en `urlsImagenesEliminadas`.
      *
@@ -428,72 +690,47 @@ public class EditarRecetaActivity extends AppCompatActivity {
             });
         }
     }
+
     /**
-     * Configura el RecyclerView para mostrar la lista de instrucciones.
+     * Actualiza el orden de todos los pasos en Firestore
      */
-    private void configurarRecycler() {
-        instruccionesAdapter = new InstruccionesAdapter(
-                listaPasos,
-                (fromPosition, toPosition) -> {
-                    Collections.swap(listaPasos, fromPosition, toPosition);
-                    instruccionesAdapter.notifyItemMoved(fromPosition, toPosition);
-                },
-                position -> {
-                    String pasoActual = listaPasos.get(position);
-                    EditText editText = new EditText(EditarRecetaActivity.this);
-                    editText.setText(pasoActual);
-                    editText.setSelection(pasoActual.length());
+    private void actualizarOrdenEnFirestore() {
+        if (receta == null || receta.getInstrucciones() == null) return;
 
-                    new AlertDialog.Builder(EditarRecetaActivity.this)
-                            .setTitle("Editar paso")
-                            .setView(editText)
-                            .setPositiveButton("Guardar", (dialog, which) -> {
-                                String nuevoPaso = editText.getText().toString().trim();
-                                if (!nuevoPaso.isEmpty() && !nuevoPaso.equals(pasoActual)) {
-                                    actualizarPasoEnFirestore(position, nuevoPaso, () -> {
-                                        // Actualiza la lista local y UI después de guardar en Firestore
-                                        listaPasos.set(position, nuevoPaso);
-                                        runOnUiThread(() -> {
-                                            instruccionesAdapter.notifyItemChanged(position);
-                                            Toast.makeText(EditarRecetaActivity.this,
-                                                    "Paso actualizado", Toast.LENGTH_SHORT).show();
-                                        });
-                                    });
-                                }
-                            })
-                            .setNegativeButton("Cancelar", null)
-                            .show();
-                });
+        WriteBatch batch = db.batch();
 
-        rvInstrucciones.setLayoutManager(new LinearLayoutManager(this));
-        rvInstrucciones.setAdapter(instruccionesAdapter);
-        rvInstrucciones.setItemAnimator(null);
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
-                ItemTouchHelper.UP | ItemTouchHelper.DOWN,
-                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView,
-                                  @NonNull RecyclerView.ViewHolder viewHolder,
-                                  @NonNull RecyclerView.ViewHolder target) {
-                int fromPos = viewHolder.getAdapterPosition();
-                int toPos = target.getAdapterPosition();
-                if (instruccionesAdapter.moveListener != null) {
-                    instruccionesAdapter.moveListener.onItemMove(fromPos, toPos);
-                }
-                return true;
+        for (int i = 0; i < listaPasos.size(); i++) {
+            if (i < receta.getInstrucciones().size()) {
+                DocumentReference ref = receta.getInstrucciones().get(i);
+                batch.update(ref, "orden", i + 1);
             }
+        }
 
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                listaPasos.remove(position);
-                instruccionesAdapter.notifyItemRemoved(position);
-            }
+        batch.commit().addOnFailureListener(e -> {
+            Log.e("Firestore", "Error actualizando orden", e);
+            Toast.makeText(this, "Error al guardar el orden", Toast.LENGTH_SHORT).show();
         });
-        itemTouchHelper.attachToRecyclerView(rvInstrucciones);
     }
+
+    /**
+     * Elimina un paso de Firestore
+     */
+    private void eliminarPasoDeFirestore(int position, Runnable onSuccess) {
+        if (receta == null || receta.getInstrucciones() == null ||
+                position >= receta.getInstrucciones().size()) {
+            return;
+        }
+
+        receta.getInstrucciones().get(position).delete()
+                .addOnSuccessListener(aVoid -> {
+                    if (onSuccess != null) onSuccess.run();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error al eliminar el paso", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error eliminando paso", e);
+                });
+    }
+
     /**
      * Actualiza el contenido de un paso de instrucción específico en Firestore.
      */
@@ -573,33 +810,13 @@ public class EditarRecetaActivity extends AppCompatActivity {
             });
         }
     }
+
     /**
-     * Metodo del ciclo de vida de la Activity que se ejecuta cuando la actividad va a comenzar
-     * a interactuar con el usuario. Se sobrescribe para asegurar que los pasos de la receta
-     * estén siempre actualizados cuando el usuario vuelve a esta pantalla.
+     * Permite recargar los datos
      */
     @Override
     protected void onResume() {
         super.onResume();
-        if (receta != null) {
-            cargarPasosDesdeFirestore();
-        }
     }
-    /**
-     * Carga asíncronamente los pasos de preparación desde Firestore y actualiza la UI.
-     */
-    private void cargarPasosDesdeFirestore() {
-        listaPasos.clear();
-        if (receta.getInstrucciones() != null) {
-            for (DocumentReference ref : receta.getInstrucciones()) {
-                ref.get().addOnSuccessListener(documentSnapshot -> {
-                    String paso = documentSnapshot.getString("paso");
-                    if (paso != null) {
-                        listaPasos.add(paso);
-                        instruccionesAdapter.notifyItemInserted(listaPasos.size() - 1);
-                    }
-                });
-            }
-        }
-    }
+
 }
