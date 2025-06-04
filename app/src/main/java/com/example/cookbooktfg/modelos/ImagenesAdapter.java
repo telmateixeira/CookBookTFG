@@ -16,6 +16,9 @@ import java.util.List;
 /**
  * Adapter para un RecyclerView que muestra una lista de imágenes.
  * Cada elemento muestra una imagen cargada desde una URL o path local.
+ *
+ *  Autor: Telma Teixeira
+ *  Proyecto: CookbookTFG
  */
 
 public class ImagenesAdapter extends RecyclerView.Adapter<ImagenesAdapter.ImagenViewHolder> {
