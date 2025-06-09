@@ -95,6 +95,11 @@ public class CrearRecetaActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         inicializarVistas();
 
+        // Luego restaurar estado si existe
+        if (savedInstanceState != null) {
+            onRestoreInstanceState(savedInstanceState);
+        }
+
         btnAgregarPaso.setOnClickListener(v -> agregarPaso());
         btnAgregarIngredientes.setOnClickListener(v -> agregarIngrediente());
         btnGuardar.setOnClickListener(v -> validarYGuardarReceta());
@@ -634,7 +639,10 @@ public class CrearRecetaActivity extends AppCompatActivity {
      * @param uri URI de la imagen a agregar.
      */
     private void agregarImagen(Uri uri) {
-        imagenesSeleccionadas.add(uri);
+        // Evitar duplicados
+        if (!imagenesSeleccionadas.contains(uri)) {
+            imagenesSeleccionadas.add(uri);
+        }
 
         ImageView imageView = new ImageView(this);
         imageView.setLayoutParams(new LinearLayout.LayoutParams(250, 250));
@@ -672,6 +680,80 @@ public class CrearRecetaActivity extends AppCompatActivity {
             return texto;
         }
         return texto.substring(0, 1).toUpperCase() + texto.substring(1).toLowerCase();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Guardar datos importantes
+        outState.putString("nombre", etNombreReceta.getText().toString());
+        outState.putString("descripcion", etDescripcion.getText().toString());
+        outState.putString("duracion", etDuracion.getText().toString());
+        outState.putString("dificultad", autoCompleteDificultad.getText().toString());
+
+        // Guardar lista de pasos
+        outState.putStringArrayList("pasos", new ArrayList<>(listaPasos));
+
+        // Guardar URIs de imágenes como strings
+        ArrayList<String> imageUris = new ArrayList<>();
+        for (Uri uri : imagenesSeleccionadas) {
+            imageUris.add(uri.toString());
+        }
+        outState.putStringArrayList("imagenes", imageUris);
+
+        // Guardar ingredientes
+        ArrayList<String> ingredientes = new ArrayList<>();
+        for (int i = 0; i < chipGroupIngredientes.getChildCount(); i++) {
+            Chip chip = (Chip) chipGroupIngredientes.getChildAt(i);
+            IngredienteModelo ing = (IngredienteModelo) chip.getTag();
+            ingredientes.add(ing.getTipo() + "|" + ing.getNombre() + "|" + ing.getCantidad());
+        }
+        outState.putStringArrayList("ingredientes", ingredientes);
+    }
+
+    /**
+     * Permite guardar el estado y recuperamos todos los datos importantes al recrear la actividad cuando sea detruida
+     */
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restaurar campos básicos
+        etNombreReceta.setText(savedInstanceState.getString("nombre"));
+        etDescripcion.setText(savedInstanceState.getString("descripcion"));
+        etDuracion.setText(savedInstanceState.getString("duracion"));
+        autoCompleteDificultad.setText(savedInstanceState.getString("dificultad"));
+
+        // Restaurar pasos
+        listaPasos.clear();
+        listaPasos.addAll(savedInstanceState.getStringArrayList("pasos"));
+        instruccionesAdapter.notifyDataSetChanged();
+
+        // Restaurar imágenes
+        imagenesSeleccionadas.clear();
+        contenedorImagenes.removeAllViews();
+        ArrayList<String> savedUris = savedInstanceState.getStringArrayList("imagenes");
+        if (savedUris != null) {
+            for (String uriString : savedUris) {
+                Uri uri = Uri.parse(uriString);
+                imagenesSeleccionadas.add(uri);
+                agregarImagen(uri); // Reutiliza tu método existente
+            }
+        }
+
+        // Restaurar ingredientes
+        chipGroupIngredientes.removeAllViews();
+        ArrayList<String> ingredientes = savedInstanceState.getStringArrayList("ingredientes");
+        if (ingredientes != null) {
+            for (String ingredienteStr : ingredientes) {
+                String[] partes = ingredienteStr.split("\\|");
+                if (partes.length == 3) {
+                    IngredienteModelo ing = new IngredienteModelo(partes[0], partes[1], partes[2]);
+                    agregarChipIngrediente(ing); // Reutiliza tu método existente
+                }
+            }
+        }
     }
 
     /**
